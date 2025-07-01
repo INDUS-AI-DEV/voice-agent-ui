@@ -13,7 +13,7 @@ app = FastAPI()
 
 # MongoDB connection
 MONGO_URI = os.getenv("MONGO_URI")
-client = MongoClient(MONGO_URI)
+client = MongoClient("mongodb+srv://aaryanreegmi39:fWx0HUwhuSPZLUn9@cluster0.3etrp2b.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
 db = client["MRE-outbound"]
 collection = db["transcript"]
 

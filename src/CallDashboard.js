@@ -2,6 +2,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Room, createLocalAudioTrack, Track } from 'livekit-client';
 import './CallDashboard.css';
 import maisyLogo from './assets/maisy-logo.png';
+import favicon from './assets/favicon.ico';
+import indusaiLogo from './assets/indusai-logo.png';
+import maleUser from './assets/male-user.jpg';
 
 const NAV = {
   DASHBOARD: 'dashboard',
@@ -17,11 +20,6 @@ const CallDashboard = () => {
   const [loading, setLoading] = useState(false);
   const [analytics, setAnalytics] = useState(null);
   const [page, setPage] = useState(0);
-  const [showComment, setShowComment] = useState(false);
-  const [commentTarget, setCommentTarget] = useState(null);
-  const [messageFeedback, setMessageFeedback] = useState({});
-  const [overallFeedback, setOverallFeedback] = useState(null);
-  const [comments, setComments] = useState({});
   const [clientDetails, setClientDetails] = useState({ clientName: '', phoneNumber: '' });
   const [productDetails, setProductDetails] = useState({ productList1: '', productList2: '' });
   const [testCallConnecting, setTestCallConnecting] = useState(false);
@@ -35,52 +33,35 @@ const CallDashboard = () => {
   // New state variables for feedback
   const [testCallType, setTestCallType] = useState(null); // 'web' or 'phone'
 
-  // New state variable for call transcript
-  const [callTranscript, setCallTranscript] = useState([]);
-
-  // Add state for chat input
-  const [chatInput, setChatInput] = useState('');
-
-  // Utility functions for localStorage
-  const LOCAL_CALLS_KEY = 'maisy_calls';
-  const LOCAL_TRANSCRIPTS_KEY = 'maisy_transcripts';
-  function getLocalCalls() {
-    const stored = localStorage.getItem(LOCAL_CALLS_KEY);
-    return stored ? JSON.parse(stored) : [];
-  }
-  function addLocalCall(call) {
-    const calls = getLocalCalls();
-    calls.unshift(call); // add to top
-    localStorage.setItem(LOCAL_CALLS_KEY, JSON.stringify(calls));
-  }
-  function getLocalTranscript(callId) {
-    const transcripts = JSON.parse(localStorage.getItem(LOCAL_TRANSCRIPTS_KEY) || '{}');
-    return transcripts[callId] || [];
-  }
-  function setLocalTranscript(callId, transcript) {
-    const transcripts = JSON.parse(localStorage.getItem(LOCAL_TRANSCRIPTS_KEY) || '{}');
-    transcripts[callId] = transcript;
-    localStorage.setItem(LOCAL_TRANSCRIPTS_KEY, JSON.stringify(transcripts));
-  }
-
   const fetchCalls = useCallback(async () => {
-    setCalls(getLocalCalls().map(c => [c.callId, c.clientName]));
-  }, []);
+    try {
+      const response = await fetch(`http://localhost:8000/get-call-ids?skip=${page * 10}&limit=10`);
+      const data = await response.json();
+      setCalls(Object.entries(data));
+    } catch (error) {
+      setCalls([]);
+    }
+  }, [page]);
 
   const fetchTranscript = async (callId) => {
     setLoading(true);
-    setTimeout(() => {
-      setTranscript(getLocalTranscript(callId));
-      const call = getLocalCalls().find(c => c.callId === callId);
-      setAnalytics(call ? {
-        userName: call.clientName,
-        phoneNumber: call.phoneNumber,
-        duration: call.duration || 'Unknown',
-        type: call.type,
-        time: call.time
-      } : null);
+    try {
+      const response = await fetch(`http://localhost:8000/get-conversation/${callId}`);
+      const rawData = await response.json();
+      const data = typeof rawData === 'string' ? JSON.parse(rawData) : rawData;
+      // Assume transcript is in data.session_history.items
+      setTranscript(data.session_history?.items || []);
+      setAnalytics({
+        userName: data.user_details?.name || 'Unknown',
+        phoneNumber: data.user_details?.phone_number || 'Unknown',
+        duration: 'Unknown',
+      });
+    } catch (error) {
+      setTranscript([]);
+      setAnalytics(null);
+    } finally {
       setLoading(false);
-    }, 200);
+    }
   };
 
   // Test Web Call Logic
@@ -117,23 +98,8 @@ const CallDashboard = () => {
     };
   }, [room]);
 
-  // Helper to add a message to the current call transcript
-  function addTranscriptMessage(role, content) {
-    setCallTranscript(prev => [
-      ...prev,
-      { id: prev.length + 1, role, content: [content] }
-    ]);
-  }
-
-  // When starting a new call, reset the transcript
-  const startWebCall = () => {
-    setCallTranscript([]);
-    setConnected(true);
-  };
-
   const connectToRoom = async () => {
     try {
-      setCallTranscript([]); // Reset transcript for new call
       const server_url = process.env.REACT_APP_TOKEN_SERVER_URL;
       const userId = `user-${Math.random().toString(36).substring(2, 8)}`;
       const roomId = `room-${Math.random().toString(36).substring(2, 8)}`;
@@ -161,41 +127,8 @@ const CallDashboard = () => {
       await room.disconnect();
       setConnected(false);
       setRoom(null);
-      // Add call to localStorage
-      const callId = `web-${Date.now()}`;
-      addLocalCall({
-        callId,
-        clientName: clientDetails.clientName || 'Web Test User',
-        phoneNumber: clientDetails.phoneNumber || '',
-        type: 'web',
-        time: new Date().toISOString(),
-        duration: '1 min',
-      });
-      setLocalTranscript(callId, callTranscript.length ? callTranscript : [
-        { id: 1, role: 'user', content: ['Hello, this is a web test call.'] },
-        { id: 2, role: 'assistant', content: ['Hi! This is mAIsy. How can I help you?'] }
-      ]);
       await fetchCalls();
     }
-  };
-
-  const handleFeedback = (messageId, type, feedbackType) => {
-    if (type === 'message') {
-      setMessageFeedback(prev => ({ ...prev, [messageId]: feedbackType }));
-    } else if (type === 'overall') {
-      setOverallFeedback(feedbackType);
-    }
-  };
-
-  const handleComment = (messageId) => {
-    setShowComment(true);
-    setCommentTarget(messageId);
-  };
-
-  const handleCommentSubmit = (text) => {
-    setComments(prev => ({ ...prev, [commentTarget]: text }));
-    setShowComment(false);
-    setCommentTarget(null);
   };
 
   const handleInputChange = (field, value) => {
@@ -206,74 +139,24 @@ const CallDashboard = () => {
     setProductDetails((prev) => ({ ...prev, [field]: value }));
   };
 
-  const submitFeedback = async (callId) => {
-    try {
-      const feedbackData = {
-        callId: callId,
-        messageFeedback: messageFeedback,
-        overallFeedback: overallFeedback,
-        comments: comments
-      };
-
-      const response = await fetch('http://localhost:8000/submit-feedback', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(feedbackData)
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to submit feedback');
-      }
-
-      // Clear feedback states after successful submission
-      setMessageFeedback({});
-      setOverallFeedback(null);
-      setComments({});
-      
-      // Optionally show success message
-      alert('Feedback submitted successfully');
-      
-    } catch (error) {
-      console.error('Error submitting feedback:', error);
-      alert('Failed to submit feedback');
-    }
-  };
-
   const makeTestCall = async () => {
     setTestCallConnecting(true);
     setTimeout(() => {
       setTestCallConnected(true);
-      setCallTranscript([]); // Reset transcript for new call
       setTestCallConnecting(false);
     }, 1500);
   };
 
-  const endTestCall = () => {
+  const endTestCall = async () => {
     setTestCallConnected(false);
-    // Add call to localStorage
-    const callId = `phone-${Date.now()}`;
-    addLocalCall({
-      callId,
-      clientName: clientDetails.clientName || 'Phone Test User',
-      phoneNumber: clientDetails.phoneNumber || '',
-      type: 'phone',
-      time: new Date().toISOString(),
-      duration: '1 min',
-    });
-    setLocalTranscript(callId, callTranscript.length ? callTranscript : [
-      { id: 1, role: 'user', content: ['Hello, this is a phone test call.'] },
-      { id: 2, role: 'assistant', content: ['Hi! This is mAIsy. How can I help you?'] }
-    ]);
-    fetchCalls();
+    await fetchCalls();
   };
 
   // --- UI Sections ---
   const renderTopBar = () => (
     <header className="dashboard-topbar">
       <img src={maisyLogo} alt="Logo" className="dashboard-logo" />
-      <span className="dashboard-title">mAIsy</span>
+      <span className="dashboard-title">AI Ordering System</span>
       <nav className="dashboard-nav">
         <button className={activeNav === NAV.DASHBOARD ? 'active' : ''} onClick={() => setActiveNav(NAV.DASHBOARD)}>Dashboard</button>
         <button className={activeNav === NAV.TEST_CALL ? 'active' : ''} onClick={() => setActiveNav(NAV.TEST_CALL)}>Test Call</button>
@@ -318,35 +201,27 @@ const CallDashboard = () => {
   );
 
   const renderTranscript = () => (
-    <div className="dashboard-transcript">
+    <div className="transcript-container-modern">
+      <h3 style={{marginBottom: '1.5rem', color: '#222', fontWeight: 700}}>Call Transcript</h3>
       {loading ? <div className="loading">Loading transcript...</div> : (
         transcript && transcript.length > 0 ? (
-          <div className="transcript-chat">
-            {transcript.map((item) => (
-              <div key={item.id} className={`message-bubble ${item.role === 'assistant' ? 'assistant' : 'user'}`}>
-                <span className="bubble-content">{item.content.join(' ')}</span>
-                {item.role === 'assistant' && (
-                  <div className="feedback-buttons">
-                    <button className={messageFeedback[item.id] === 'like' ? 'active' : ''} onClick={() => handleFeedback(item.id, 'message', 'like')} title="Like"><img src="/thumbs-up.svg" alt="Like" /></button>
-                    <button className={messageFeedback[item.id] === 'dislike' ? 'active' : ''} onClick={() => handleFeedback(item.id, 'message', 'dislike')} title="Dislike"><img src="/thumbs-down.svg" alt="Dislike" /></button>
-                    <button onClick={() => handleComment(item.id)} title="Add Comment">💬</button>
-                  </div>
-                )}
+          <div className="transcript-chat-modern">
+            {transcript.map((item, idx) => (
+              <div key={item.id || idx} className={`transcript-bubble ${item.role}`}>
+                <div className="transcript-meta">
+                  {item.role === 'assistant' ? (
+                    <img src={indusaiLogo} alt="IndusAI" className="transcript-avatar assistant" style={{width: 32, height: 32, objectFit: 'cover'}} />
+                  ) : (
+                    <img src={maleUser} alt="User" className="transcript-avatar user" style={{width: 32, height: 32, objectFit: 'cover'}} />
+                  )}
+                  <span className="transcript-sender">{item.role === 'user' ? analytics?.userName || 'You' : 'IndusAI'}</span>
+                  {item.time && <span className="transcript-time">{item.time}</span>}
+                </div>
+                <div>{item.content.join(' ')}</div>
               </div>
             ))}
-            <div className="feedback-footer">
-              <span>Overall Feedback:</span>
-              <button className={overallFeedback === 'like' ? 'active' : ''} onClick={() => handleFeedback(null, 'overall', 'like')}><img src="/thumbs-up.svg" alt="Like" /></button>
-              <button className={overallFeedback === 'dislike' ? 'active' : ''} onClick={() => handleFeedback(null, 'overall', 'dislike')}><img src="/thumbs-down.svg" alt="Dislike" /></button>
-              <button className="submit-feedback-button" onClick={() => submitFeedback(selectedCallId)} disabled={!overallFeedback}>Submit Feedback</button>
-            </div>
           </div>
         ) : <div className="no-transcript">Select a call to view its transcript</div>
-      )}
-      {showComment && (
-        <div className="comment-modal">
-          <textarea autoFocus placeholder="Add your comment..." onBlur={(e) => handleCommentSubmit(e.target.value)} />
-        </div>
       )}
     </div>
   );
@@ -365,32 +240,6 @@ const CallDashboard = () => {
             {!connected ? (testCallConnecting ? 'Connecting...' : 'Start Web Call') : 'End Web Call'}
           </button>
           {connected && isSpeaking && <div className="speaking-indicator">🔊 Agent is speaking...</div>}
-          {/* Chat UI for transcript */}
-          {connected && (
-            <div className="chat-ui">
-              <div className="chat-messages">
-                {callTranscript.map((msg) => (
-                  <div key={msg.id} className={`chat-message ${msg.role}`}>
-                    <b>{msg.role === 'user' ? 'You' : 'mAIsy'}:</b> {msg.content.join(' ')}
-                  </div>
-                ))}
-              </div>
-              <form onSubmit={e => {
-                e.preventDefault();
-                if (chatInput.trim()) {
-                  addTranscriptMessage('user', chatInput.trim());
-                  // Simulate assistant reply
-                  setTimeout(() => {
-                    addTranscriptMessage('assistant', `Echo: ${chatInput.trim()}`);
-                  }, 500);
-                  setChatInput('');
-                }
-              }} className="chat-input-form">
-                <input type="text" value={chatInput} onChange={e => setChatInput(e.target.value)} placeholder="Type your message..." />
-                <button type="submit">Send</button>
-              </form>
-            </div>
-          )}
         </div>
       )}
       {testCallType === 'phone' && (
