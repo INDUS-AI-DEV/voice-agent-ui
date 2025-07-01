@@ -1,0 +1,44 @@
+# .gitignore
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environments
+.venv/
+venv/
+ENV/
+
+# VS Code
+.vscode/
+
+# Pytest cache
+.pytest_cache/
+
+# Coverage reports
+htmlcov/
+.coverage
+coverage.xml
+
+# mypy
+.mypy_cache/
+.dmypy.json
+
+# Logs
+*.log
+
+# Local env and secrets
+.env
+.env.*
+
+# Docker artifacts
+*.tar
+
+# Build
+build/
+dist/
+*.egg-info/
+
+# Notebooks
+.ipynb_checkpoints/

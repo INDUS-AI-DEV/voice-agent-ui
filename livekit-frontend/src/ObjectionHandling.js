@@ -34,7 +34,8 @@ function MPINModal({ onAuthenticate }) {
     setLoading(true);
     const mpinValue = mpin.join('');
     try {
-      const resp = await fetch('http://localhost:8000/api/verify-mpin', {
+      const server_url = process.env.REACT_APP_BACKEND_SERVER
+      const resp = await fetch(`${server_url}/api/verify-mpin`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ mpin: mpinValue })
@@ -139,7 +140,7 @@ function ObjectionHandling() {
     if (connecting || connected) return;
     setConnecting(true);
     try {
-      const server_url = process.env.REACT_APP_TOKEN_SERVER_URL;
+      const server_url = process.env.REACT_APP_TOKEN_SERVER_URL_OBJECTION;
       const userId = `user-${Math.random().toString(36).substring(2, 8)}`;
       const roomId = `room-${Math.random().toString(36).substring(2, 8)}`;
       const fullUrl = `${server_url}room=${roomId}&user=${userId}`;
@@ -147,7 +148,7 @@ function ObjectionHandling() {
       const data = await resp.json();
       const token = data.token;
       const newRoom = new Room();
-      await newRoom.connect(process.env.REACT_APP_LIVEKIT_WS_URL, token);
+      await newRoom.connect(process.env.REACT_APP_LIVEKIT_WS_URL_OBJECTION, token);
       setRoom(newRoom);
       setConnected(true);
       const micTrack = await createLocalAudioTrack();
@@ -187,7 +188,8 @@ function ObjectionHandling() {
       setConnecting(true);
       try {
         // Different endpoint for objection handling
-        const resp = await fetch('http://localhost:8000/api/objection-telephony-call', {
+        const server_url = process.env.REACT_APP_BACKEND_SERVER
+        const resp = await fetch(`${server_url}/api/objection-telephony-call`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ phoneNumber, clientName })

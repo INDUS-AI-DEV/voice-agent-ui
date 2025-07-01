@@ -39,7 +39,8 @@ function MPINModal({ onAuthenticate }) {
     const mpinValue = mpin.join('');
     try {
       // Stubbed API call - replace with your backend endpoint
-      const resp = await fetch('http://localhost:8000/api/verify-mpin', {
+      const server_url = process.env.REACT_APP_BACKEND_SERVER
+      const resp = await fetch(`${server_url}/api/verify-mpin`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ mpin: mpinValue })
@@ -228,7 +229,8 @@ function App() {
       }
       setConnecting(true);
       try {
-        const resp = await fetch('http://localhost:8000/api/start-telephony-call', {
+        const server_url = process.env.REACT_APP_BACKEND_SERVER
+        const resp = await fetch(`${server_url}/api/start-telephony-call`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ phoneNumber, clientName })
