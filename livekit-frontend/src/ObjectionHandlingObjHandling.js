@@ -90,7 +90,7 @@ function MPINModal({ onAuthenticate }) {
   );
 }
 
-function ObjectionHandlingManagerReview() {
+function ObjectionHandlingObjHandling() {
   const [room, setRoom] = useState(null);
   const [connected, setConnected] = useState(false);
   const [connecting, setConnecting] = useState(false);
@@ -143,7 +143,7 @@ function ObjectionHandlingManagerReview() {
       const server_url = process.env.REACT_APP_TOKEN_SERVER_URL_OBJECTION2;
       const userId = `user-${Math.random().toString(36).substring(2, 8)}`;
       const roomId = `room-${Math.random().toString(36).substring(2, 8)}`;
-      const fullUrl = `${server_url}room=${roomId}&user=${userId}&agent_type=persona_manager_review`;
+      const fullUrl = `${server_url}room=${roomId}&user=${userId}&agent_type=persona_obj_handling`;
       const resp = await fetch(fullUrl);
       const data = await resp.json();
       const token = data.token;
@@ -302,4 +302,4 @@ function ObjectionHandlingManagerReview() {
   );
 }
 
-export default ObjectionHandlingManagerReview; 
+export default ObjectionHandlingObjHandling; 
