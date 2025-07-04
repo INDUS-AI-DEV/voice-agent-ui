@@ -7,6 +7,7 @@ const ObjectionHandling = () => {
   const [connected, setConnected] = useState(false);
   const [room, setRoom] = useState(null);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [activeAgent, setActiveAgent] = useState(null); // Track which agent is being connected
 
   useEffect(() => {
     if (!room) return;
@@ -39,14 +40,17 @@ const ObjectionHandling = () => {
     };
   }, [room]);
 
-  const connectToRoom = async () => {
+  // agentType: one of the allowed agent types
+  const connectToRoom = async (agentType) => {
     if (connecting || connected) return;
+    setActiveAgent(agentType);
     setConnecting(true);
     try {
       const server_url = process.env.REACT_APP_TOKEN_SERVER_URL;
       const userId = `user-${Math.random().toString(36).substring(2, 8)}`;
       const roomId = `room-${Math.random().toString(36).substring(2, 8)}`;
-      const fullUrl = `${server_url}room=${roomId}&user=${userId}`;
+      // Add agent_type to the URL
+      const fullUrl = `${server_url}room=${roomId}&user=${userId}&agent_type=${agentType}`;
       const resp = await fetch(fullUrl);
       const data = await resp.json();
       const token = data.token;
@@ -66,6 +70,7 @@ const ObjectionHandling = () => {
   const disconnectFromRoom = async () => {
     if (!room || connecting) return;
     setConnecting(true);
+    setActiveAgent(null);
     try {
       await room.disconnect();
       setConnected(false);
@@ -87,38 +92,60 @@ const ObjectionHandling = () => {
         </div>
         <div className="objection-content-row">
           <img 
-            src={process.env.PUBLIC_URL + '/character.png'} 
-            alt="Business Character" 
+            src={process.env.PUBLIC_URL + '/Cartoon.png'} 
+            alt="Business Cartoon" 
             className="character-image-large"
-            style={{marginLeft: 24}}
+            style={{marginLeft: 24, marginTop: -68}}
           />
           <div className="objection-buttons-col align-right" style={{marginTop: 40, marginBottom: 40, marginRight: 84, maxWidth: 260}}>
             <button
-              className={`objection-btn qna ${connecting ? 'connecting' : ''} ${connected ? 'end-call' : 'start-call'}`}
+              className={`objection-btn qna ${connecting && activeAgent === 'persona_obj_handling' ? 'connecting' : ''} ${connected && activeAgent === 'persona_obj_handling' ? 'end-call' : 'start-call'}`}
               data-agent="persona_obj_handling"
-              onClick={!connected ? connectToRoom : disconnectFromRoom}
-              disabled={connecting}
+              onClick={!connected ? () => connectToRoom('persona_obj_handling') : disconnectFromRoom}
+              disabled={connecting || (connected && activeAgent !== 'persona_obj_handling')}
             >
-              {connecting ? 'CONNECTING...' : (!connected ? 'QnA' : 'END CALL')}
+              {connecting && activeAgent === 'persona_obj_handling' ? 'CONNECTING...' : (!connected || activeAgent !== 'persona_obj_handling' ? 'QnA' : 'END CALL')}
             </button>
-            <button className="objection-btn shadow" data-agent="persona_manager_review" disabled={connecting || connected}>
-              Shadow Review General
+            <button
+              className={`objection-btn shadow ${connecting && activeAgent === 'persona_manager_review' ? 'connecting' : ''} ${connected && activeAgent === 'persona_manager_review' ? 'end-call' : ''}`}
+              data-agent="persona_manager_review"
+              onClick={!connected ? () => connectToRoom('persona_manager_review') : disconnectFromRoom}
+              disabled={connecting || (connected && activeAgent !== 'persona_manager_review')}
+            >
+              {connecting && activeAgent === 'persona_manager_review' ? 'CONNECTING...' : (!connected || activeAgent !== 'persona_manager_review' ? 'Shadow Review General' : 'END CALL')}
             </button>
-            <button className="objection-btn shadow" data-agent="persona_manager_review_analytics" disabled={connecting || connected}>
-              Shadow Review of Analytics
+            <button
+              className={`objection-btn shadow ${connecting && activeAgent === 'persona_manager_review_analytics' ? 'connecting' : ''} ${connected && activeAgent === 'persona_manager_review_analytics' ? 'end-call' : ''}`}
+              data-agent="persona_manager_review_analytics"
+              onClick={!connected ? () => connectToRoom('persona_manager_review_analytics') : disconnectFromRoom}
+              disabled={connecting || (connected && activeAgent !== 'persona_manager_review_analytics')}
+            >
+              {connecting && activeAgent === 'persona_manager_review_analytics' ? 'CONNECTING...' : (!connected || activeAgent !== 'persona_manager_review_analytics' ? 'Shadow Review of Analytics' : 'END CALL')}
             </button>
-            <button className="objection-btn roleplay-so" data-agent="persona_role_play" disabled={connecting || connected}>
-              Role-Play SO (OH)
+            <button
+              className={`objection-btn roleplay-so ${connecting && activeAgent === 'persona_role_play' ? 'connecting' : ''} ${connected && activeAgent === 'persona_role_play' ? 'end-call' : ''}`}
+              data-agent="persona_role_play"
+              onClick={!connected ? () => connectToRoom('persona_role_play') : disconnectFromRoom}
+              disabled={connecting || (connected && activeAgent !== 'persona_role_play')}
+            >
+              {connecting && activeAgent === 'persona_role_play' ? 'CONNECTING...' : (!connected || activeAgent !== 'persona_role_play' ? 'Role-Play SO (OH)' : 'END CALL')}
             </button>
-            <button className="objection-btn roleplay-merchant" data-agent="persona_role_play_merchant" disabled={connecting || connected}>
-              Role-Play Merchant (OH)
+            <button
+              className={`objection-btn roleplay-merchant ${connecting && activeAgent === 'persona_role_play_merchant' ? 'connecting' : ''} ${connected && activeAgent === 'persona_role_play_merchant' ? 'end-call' : ''}`}
+              data-agent="persona_role_play_merchant"
+              onClick={!connected ? () => connectToRoom('persona_role_play_merchant') : disconnectFromRoom}
+              disabled={connecting || (connected && activeAgent !== 'persona_role_play_merchant')}
+            >
+              {connecting && activeAgent === 'persona_role_play_merchant' ? 'CONNECTING...' : (!connected || activeAgent !== 'persona_role_play_merchant' ? 'Role-Play Merchant (OH)' : 'END CALL')}
             </button>
           </div>
         </div>
         {connected && isSpeaking && (
-          <div className="speaking-indicator">
-            <div className="pulse-dot"></div>
-            Agent is speaking...
+          <div style={{ width: '100%', display: 'flex', justifyContent: 'center', marginTop: 24 }}>
+            <div className="speaking-indicator">
+              <div className="pulse-dot" style={{ marginRight: 8 }}></div>
+              Agent is speaking
+            </div>
           </div>
         )}
       </div>

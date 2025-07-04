@@ -27,6 +27,7 @@ html {
   text-size-adjust: 100%;
 }
 
+
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background: var(--background-dark);
@@ -42,7 +43,7 @@ body {
   height: 100vh;
   width: 100vw;
   padding: 0;
-  background: var(--background-dark);
+  /* Remove background image from app-container, move to phone-mockup for main page */
 }
 
 .phone-mockup {
@@ -64,6 +65,10 @@ body {
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   overflow: hidden;
   gap: 1.2rem;
+}
+
+.phone-mockup.light-bg {
+  background-image: url('./assets/maisy-light-background.png');
 }
 
 .phone-mockup::before {
