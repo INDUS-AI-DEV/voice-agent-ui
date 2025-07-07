@@ -2,13 +2,101 @@ import React, { useState, useEffect } from 'react';
 import { Room, createLocalAudioTrack, Track } from 'livekit-client';
 import './ObjectionHandling.css';
 
+// OTP/MPIN Modal Component
+function MPINModal({ onAuthenticate }) {
+  const [mpin, setMpin] = useState(['', '', '', '']);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = (e, idx) => {
+    const val = e.target.value.replace(/\D/g, '');
+    if (val.length > 1) return;
+    const newMpin = [...mpin];
+    newMpin[idx] = val;
+    setMpin(newMpin);
+    // Move to next input if filled
+    if (val && idx < 3) {
+      document.getElementById(`mpin-input-${idx + 1}`).focus();
+    }
+  };
+
+  const handleKeyDown = (e, idx) => {
+    if (e.key === 'Backspace' && !mpin[idx] && idx > 0) {
+      document.getElementById(`mpin-input-${idx - 1}`).focus();
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+    const mpinValue = mpin.join('');
+    try {
+      // Stubbed API call - replace with your backend endpoint
+      const server_url = process.env.REACT_APP_BACKEND_SERVER
+      const resp = await fetch(`${server_url}/api/verify-mpin`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mpin: mpinValue })
+      });
+      const data = await resp.json();
+      if (resp.ok && data.success) {
+        onAuthenticate();
+      } else {
+        setError(data.error || 'Invalid MPIN');
+      }
+    } catch (err) {
+      setError('Network error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div style={{
+      position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
+      background: 'rgba(0,0,0,0.7)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center'
+    }}>
+      <form onSubmit={handleSubmit} style={{
+        background: '#fff', borderRadius: 16, padding: 32, boxShadow: '0 2px 16px rgba(0,0,0,0.2)',
+        display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 320
+      }}>
+        <div style={{ fontWeight: 'bold', fontSize: 18, marginBottom: 16 }}>Enter 4-digit MPIN</div>
+        <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+          {mpin.map((digit, idx) => (
+            <input
+              key={idx}
+              id={`mpin-input-${idx}`}
+              type="password"
+              inputMode="numeric"
+              maxLength={1}
+              value={digit}
+              onChange={e => handleChange(e, idx)}
+              onKeyDown={e => handleKeyDown(e, idx)}
+              style={{ width: 40, height: 40, fontSize: 24, textAlign: 'center', borderRadius: 8, border: '1px solid #ccc' }}
+              autoFocus={idx === 0}
+            />
+          ))}
+        </div>
+        <button type="submit" disabled={loading || mpin.some(d => !d)} style={{
+          width: '100%', padding: '10px 0', borderRadius: 8, background: '#1a73e8', color: '#fff', fontWeight: 'bold', fontSize: 16, border: 'none', cursor: 'pointer', marginBottom: 8
+        }}>
+          {loading ? 'Verifying...' : 'Login'}
+        </button>
+        {error && <div style={{ color: 'red', marginTop: 8 }}>{error}</div>}
+      </form>
+    </div>
+  );
+}
+
+
 const ObjectionHandling = () => {
   const [connecting, setConnecting] = useState(false);
   const [connected, setConnected] = useState(false);
   const [room, setRoom] = useState(null);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [activeAgent, setActiveAgent] = useState(null); // Track which agent is being connected
-
+  const [authenticated, setAuthenticated] = useState(false);
   useEffect(() => {
     if (!room) return;
 
@@ -46,7 +134,7 @@ const ObjectionHandling = () => {
     setActiveAgent(agentType);
     setConnecting(true);
     try {
-      const server_url = process.env.REACT_APP_TOKEN_SERVER_URL;
+      const server_url = process.env.REACT_APP_TOKEN_SERVER_URL_OBJECTION2;
       const userId = `user-${Math.random().toString(36).substring(2, 8)}`;
       const roomId = `room-${Math.random().toString(36).substring(2, 8)}`;
       // Add agent_type to the URL
@@ -55,7 +143,7 @@ const ObjectionHandling = () => {
       const data = await resp.json();
       const token = data.token;
       const newRoom = new Room();
-      await newRoom.connect(process.env.REACT_APP_LIVEKIT_WS_URL, token);
+      await newRoom.connect(process.env.REACT_APP_LIVEKIT_WS_URL_OBJECTION2, token);
       setRoom(newRoom);
       setConnected(true);
       const micTrack = await createLocalAudioTrack();
@@ -85,6 +173,7 @@ const ObjectionHandling = () => {
 
   return (
     <div className="app-container">
+      {!authenticated && <MPINModal onAuthenticate={() => setAuthenticated(true)} />}
       <div className="phone-mockup light-bg">
         <div className="logo-container">
           <img src={process.env.PUBLIC_URL + '/maisy-logo-grey.png'} alt="maisy logo" className="logo" />

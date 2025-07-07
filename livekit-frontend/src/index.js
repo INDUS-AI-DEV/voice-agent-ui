@@ -6,6 +6,8 @@ import reportWebVitals from './reportWebVitals';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import ObjectionHandling from './ObjectionHandling';
 import ObjectionHandlingManagerReview from './ObjectionHandlingManagerReview';
+import ObjectionHandlingObjHandling from './ObjectionHandlingObjHandling';
+import ObjectionHandlingRolePlay from './ObjectionHandlingRolePlay';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
@@ -14,6 +16,8 @@ root.render(
       <Routes>
         <Route path="/objection-handling" element={<ObjectionHandling />} />
         <Route path="/objection-manager-review" element={<ObjectionHandlingManagerReview />} />
+        <Route path="/objection-obj-handling" element={<ObjectionHandlingObjHandling />} />
+        <Route path="/objection-role-play" element={<ObjectionHandlingRolePlay />} />
         <Route path="/*" element={<App />} />
       </Routes>
     </BrowserRouter>

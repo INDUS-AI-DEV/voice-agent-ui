@@ -14,7 +14,7 @@ app.add_middleware(
 )
 
 # Demo: In-memory MPIN (in production, use a DB)
-VALID_MPIN = "1234"
+VALID_MPIN = "7892"
 
 class MPINRequest(BaseModel):
     mpin: str
