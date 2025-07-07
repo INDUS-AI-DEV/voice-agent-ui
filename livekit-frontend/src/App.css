@@ -27,7 +27,6 @@ html {
   text-size-adjust: 100%;
 }
 
-
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background: var(--background-dark);
@@ -391,6 +390,8 @@ input:checked + .slider:before {
     min-width: 100vw;
     box-sizing: border-box;
   }
+  html, body {
+  }
   .phone-mockup {
     width: 100vw !important;
     max-width: 100vw !important;
@@ -462,7 +463,7 @@ input:checked + .slider:before {
   }
   .bot-container {
     padding-left: 4px !important;
-    margin-bottom: -30px !important; /* Only 30% of 100px bot hidden, 70px visible */
+    margin-bottom: 60px !important; /* Move bot image a bit above the bottom */
   }
   .bot-image {
     width: 100px !important;
