@@ -2,12 +2,21 @@ import React, { useState, useEffect } from 'react';
 import { Room, createLocalAudioTrack, Track } from 'livekit-client';
 import './ObjectionHandling.css';
 
+const LANGUAGE_OPTIONS = [
+  { value: 'Hi', label: 'Hindi' },
+  { value: 'En', label: 'English' },
+  { value: 'Ta', label: 'Tamil' },
+  { value: 'Ar', label: 'Arabic' },
+  { value: 'Af', label: 'African' },
+];
+
 const ObjectionHandling = () => {
   const [connecting, setConnecting] = useState(false);
   const [connected, setConnected] = useState(false);
   const [room, setRoom] = useState(null);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [activeAgent, setActiveAgent] = useState(null); // Track which agent is being connected
+  const [language, setLanguage] = useState('Hi');
 
   useEffect(() => {
     if (!room) return;
@@ -86,9 +95,29 @@ const ObjectionHandling = () => {
   return (
     <div className="app-container">
       <div className="phone-mockup light-bg">
-        <div className="logo-container">
-          <img src={process.env.PUBLIC_URL + '/maisy-logo-grey.png'} alt="maisy logo" className="logo" />
-          <div className="logo-subtitle">AI Agentic Shadow</div>
+        {/* Logo and Language Dropdown Row */}
+        <div className="logo-lang-row">
+          <div className="logo-container" style={{ marginBottom: 0 }}>
+            <img src={process.env.PUBLIC_URL + '/maisy-logo-grey.png'} alt="maisy logo" className="logo" />
+            <div className="logo-subtitle">AI Agentic Shadow</div>
+          </div>
+          <div className="language-dropdown-container objection-language-dropdown-container">
+            <select
+              className="language-dropdown objection-language-dropdown"
+              value={language}
+              onChange={e => setLanguage(e.target.value)}
+              aria-label="Select Language"
+            >
+              {LANGUAGE_OPTIONS.map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+            <span className="language-dropdown-arrow objection-language-dropdown-arrow">
+              <svg width="16" height="16" viewBox="0 0 20 20" fill="none" style={{ verticalAlign: 'middle' }}>
+                <path d="M5 8l5 5 5-5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </span>
+          </div>
         </div>
         <div className="objection-content-row">
           <img 

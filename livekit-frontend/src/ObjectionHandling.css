@@ -488,3 +488,103 @@
     font-weight: 600;
   }
 }
+
+.logo-lang-row {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: 8px;
+  position: relative;
+}
+
+.logo-lang-row .logo-container {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 0;
+  margin-left: 24px; /* Move logo a bit right */
+}
+
+.language-dropdown-container.objection-language-dropdown-container {
+  margin-bottom: 0;
+  margin-left: auto;
+  flex: 0 0 auto;
+  margin-top: 12px; /* Move dropdown a bit down */
+}
+
+@media (max-width: 700px) {
+  .logo-lang-row {
+    margin-bottom: 4px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+  }
+  .logo-lang-row .logo-container {
+    margin-bottom: 0;
+    align-items: center;
+    margin-left: 12px;
+  }
+  .language-dropdown-container.objection-language-dropdown-container {
+    margin-bottom: 0;
+    margin-left: 0;
+    margin-top: 8px;
+    align-self: flex-end;
+  }
+}
+
+.language-dropdown.objection-language-dropdown {
+  background: #f7f7f7;
+  color: #222;
+  font-weight: 600;
+  font-size: 16px;
+  border: 1.5px solid #e0e0e0;
+  outline: none;
+  cursor: pointer;
+  padding: 8px 28px 8px 8px;
+  border-radius: 8px;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  transition: border 0.2s, box-shadow 0.2s;
+  min-width: 90px;
+  width: auto;
+}
+
+.language-dropdown-arrow.objection-language-dropdown-arrow {
+  position: absolute;
+  right: 12px;
+  pointer-events: none;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+.language-dropdown-arrow.objection-language-dropdown-arrow svg path {
+  stroke: #888;
+}
+
+@media (max-width: 700px) {
+  .language-dropdown-container.objection-language-dropdown-container {
+    margin-bottom: 6px;
+  }
+  .language-dropdown.objection-language-dropdown {
+    font-size: 14px;
+    padding: 6px 22px 6px 6px;
+    min-width: 60px;
+  }
+  .language-dropdown-arrow.objection-language-dropdown-arrow {
+    right: 8px;
+  }
+}
+
+.objection-language-dropdown option {
+  color: #222;
+  background: #fff;
+  font-size: 16px;
+}
