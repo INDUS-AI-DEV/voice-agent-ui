@@ -2,21 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Room, createLocalAudioTrack, Track } from 'livekit-client';
 import './ObjectionHandling.css';
 
-const LANGUAGE_OPTIONS = [
-  { value: 'Hi', label: 'Hindi' },
-  { value: 'En', label: 'English' },
-  { value: 'Ta', label: 'Tamil' },
-  { value: 'Ar', label: 'Arabic' },
-  { value: 'Af', label: 'African' },
-];
-
-const ObjectionHandling = () => {
+const ObjectionHandlingBackup = () => {
   const [connecting, setConnecting] = useState(false);
   const [connected, setConnected] = useState(false);
   const [room, setRoom] = useState(null);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [activeAgent, setActiveAgent] = useState(null); // Track which agent is being connected
-  const [language, setLanguage] = useState('Hi');
 
   useEffect(() => {
     if (!room) return;
@@ -55,21 +46,53 @@ const ObjectionHandling = () => {
     setActiveAgent(agentType);
     setConnecting(true);
     try {
-      const server_url = process.env.REACT_APP_TOKEN_SERVER_URL;
+      // Different server URLs for each agent type
+      let server_url;
+      let ws_url;
+      
+      switch(agentType) {
+        case 'persona_obj_handling':
+          server_url = process.env.REACT_APP_TOKEN_SERVER_URL_OBJ_HANDLING;
+          ws_url = process.env.REACT_APP_LIVEKIT_WS_URL_OBJECTION;
+          break;
+        case 'persona_manager_review':
+          server_url = process.env.REACT_APP_TOKEN_SERVER_URL_MANAGER_REVIEW;
+          ws_url = process.env.REACT_APP_LIVEKIT_WS_URL_OBJECTION;
+          break;
+        case 'persona_manager_review_analytics':
+          server_url = process.env.REACT_APP_TOKEN_SERVER_URL_MANAGER_REVIEW_ANALYRICS;
+          ws_url = process.env.REACT_APP_LIVEKIT_WS_URL_OBJECTION;
+          break;
+        case 'persona_role_play':
+          server_url = process.env.REACT_APP_TOKEN_SERVER_URL_ROLE_PLAY;
+          ws_url = process.env.REACT_APP_LIVEKIT_WS_URL_OBJECTION2;
+          break;
+        case 'persona_role_play_merchant':
+          server_url = process.env.REACT_APP_TOKEN_SERVER_URL_MERCHANT;
+          ws_url = process.env.REACT_APP_LIVEKIT_WS_URL_OBJECTION2;
+          break;
+        default:
+          server_url = process.env.REACT_APP_TOKEN_SERVER_URL_OBJECTION;
+          ws_url = process.env.REACT_APP_LIVEKIT_WS_URL_OBJECTION;
+      }
+
       const userId = `user-${Math.random().toString(36).substring(2, 8)}`;
       const roomId = `room-${Math.random().toString(36).substring(2, 8)}`;
-      // Add agent_type and language to the URL
-      const fullUrl = `${server_url}room=${roomId}&user=${userId}&agent_type=${agentType}&language=${language}`;
+      // No language parameter in URL for backup version
+      const fullUrl = `${server_url}room=${roomId}&user=${userId}&agent_type=${agentType}`;
+      console.log("Backup Full URL:", fullUrl);
+      
       const resp = await fetch(fullUrl);
       const data = await resp.json();
       const token = data.token;
       const newRoom = new Room();
-      await newRoom.connect(process.env.REACT_APP_LIVEKIT_WS_URL, token);
+      await newRoom.connect(ws_url, token);
       setRoom(newRoom);
       setConnected(true);
       const micTrack = await createLocalAudioTrack();
       await newRoom.localParticipant.publishTrack(micTrack);
     } catch (err) {
+      console.error('Error connecting to Agent:', err);
       // Optionally show error UI
     } finally {
       setConnecting(false);
@@ -86,6 +109,7 @@ const ObjectionHandling = () => {
       setRoom(null);
       setIsSpeaking(false);
     } catch (err) {
+      console.error('Error disconnecting:', err);
       // Optionally show error UI
     } finally {
       setConnecting(false);
@@ -100,23 +124,6 @@ const ObjectionHandling = () => {
           <div className="logo-container" style={{ marginBottom: 0 }}>
             <img src={process.env.PUBLIC_URL + '/maisy-logo-grey.png'} alt="maisy logo" className="logo" />
             <div className="logo-subtitle">AI Agentic Shadow</div>
-          </div>
-          <div className="language-dropdown-container objection-language-dropdown-container">
-            <select
-              className="language-dropdown objection-language-dropdown"
-              value={language}
-              onChange={e => setLanguage(e.target.value)}
-              aria-label="Select Language"
-            >
-              {LANGUAGE_OPTIONS.map(opt => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
-              ))}
-            </select>
-            <span className="language-dropdown-arrow objection-language-dropdown-arrow">
-              <svg width="16" height="16" viewBox="0 0 20 20" fill="none" style={{ verticalAlign: 'middle' }}>
-                <path d="M5 8l5 5 5-5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </span>
           </div>
         </div>
         <div className="objection-content-row">
@@ -182,4 +189,4 @@ const ObjectionHandling = () => {
   );
 };
 
-export default ObjectionHandling;
+export default ObjectionHandlingBackup; 
