@@ -62,27 +62,27 @@ const ObjectionHandlingBackup = () => {
       switch(agentType) {
         case 'persona_obj_handling':
           server_url = process.env.REACT_APP_TOKEN_SERVER_URL_OBJ_HANDLING;
-          ws_url = process.env.REACT_APP_LIVEKIT_WS_URL_OBJECTION;
+          ws_url = process.env.REACT_APP_LIVEKIT_WS_URL_OBJ_HANDLING;
           break;
         case 'persona_manager_review':
           server_url = process.env.REACT_APP_TOKEN_SERVER_URL_MANAGER_REVIEW;
-          ws_url = process.env.REACT_APP_LIVEKIT_WS_URL_OBJECTION;
+          ws_url = process.env.REACT_APP_LIVEKIT_WS_URL_MANAGER_REVIEW;
           break;
         case 'persona_manager_review_analytics':
           server_url = process.env.REACT_APP_TOKEN_SERVER_URL_MANAGER_REVIEW_ANALYRICS;
-          ws_url = process.env.REACT_APP_LIVEKIT_WS_URL_OBJECTION;
+          ws_url = process.env.REACT_APP_LIVEKIT_WS_URL_MANAGER_REVIEW_ANALYRICS;
           break;
         case 'persona_role_play':
           server_url = process.env.REACT_APP_TOKEN_SERVER_URL_ROLE_PLAY;
-          ws_url = process.env.REACT_APP_LIVEKIT_WS_URL_OBJECTION2;
+          ws_url = process.env.REACT_APP_LIVEKIT_WS_URL_ROLE_PLAY;
           break;
         case 'persona_role_play_merchant':
           server_url = process.env.REACT_APP_TOKEN_SERVER_URL_MERCHANT;
-          ws_url = process.env.REACT_APP_LIVEKIT_WS_URL_OBJECTION2;
+          ws_url = process.env.REACT_APP_LIVEKIT_WS_URL_MERCHANT;
           break;
         default:
-          server_url = process.env.REACT_APP_TOKEN_SERVER_URL_OBJECTION;
-          ws_url = process.env.REACT_APP_LIVEKIT_WS_URL_OBJECTION;
+          server_url = process.env.REACT_APP_TOKEN_SERVER_URL_OBJECTION2;
+          ws_url = process.env.REACT_APP_LIVEKIT_WS_URL_OBJECTION2;
       }
 
       const userId = `user-${Math.random().toString(36).substring(2, 8)}`;
