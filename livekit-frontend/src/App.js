@@ -8,6 +8,15 @@ import greenCallButton from './assets/MakeCallButton.jpg';
 import redCallButton from './assets/EndCallButton.jpg';
 import maisyBot from './assets/maisy-image.png';
 
+// Language options for dropdown (full names)
+const LANGUAGE_OPTIONS = [
+  { value: 'Hi', label: 'Hindi' },
+  { value: 'En', label: 'English' },
+  { value: 'Ta', label: 'Tamil' },
+  { value: 'Ar', label: 'Arabic' },
+  { value: 'Af', label: 'African' },
+];
+
 // OTP/MPIN Modal Component
 function MPINModal({ onAuthenticate }) {
   const [mpin, setMpin] = useState(['', '', '', '']);
@@ -32,30 +41,16 @@ function MPINModal({ onAuthenticate }) {
     }
   };
 
+  // Commented out backend verification for frontend testing only
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
-    const mpinValue = mpin.join('');
-    try {
-      // Stubbed API call - replace with your backend endpoint
-      const server_url = process.env.REACT_APP_BACKEND_SERVER
-      const resp = await fetch(`${server_url}/api/verify-mpin`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mpin: mpinValue })
-      });
-      const data = await resp.json();
-      if (resp.ok && data.success) {
-        onAuthenticate();
-      } else {
-        setError(data.error || 'Invalid MPIN');
-      }
-    } catch (err) {
-      setError('Network error');
-    } finally {
+    // Directly authenticate for frontend testing
+    setTimeout(() => {
+      onAuthenticate();
       setLoading(false);
-    }
+    }, 500);
   };
 
   return (
@@ -106,6 +101,7 @@ function App() {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [clientName, setClientName] = useState('');
   const [telephonyStatus, setTelephonyStatus] = useState('');
+  const [language, setLanguage] = useState('Hi'); // Default to Hindi
 
   useEffect(() => {
     if (!room) return;
@@ -159,9 +155,7 @@ function App() {
   const connectToRoom = async () => {
     // Prevent multiple simultaneous connection attempts
     if (connecting || connected) return;
-    
     setConnecting(true);
-    
     try {
       const server_url = process.env.REACT_APP_TOKEN_SERVER_URL;
       console.log("Server url:", server_url);
@@ -172,8 +166,8 @@ function App() {
       // 2. (Optional) Fixed room, or generate room dynamically if needed
       const roomId = `room-${Math.random().toString(36).substring(2, 8)}`;
 
-      // 3. Build final URL dynamically
-      const fullUrl = `${server_url}room=${roomId}&user=${userId}`;
+      // 3. Build final URL dynamically, now with language param
+      const fullUrl = `${server_url}room=${roomId}&user=${userId}&language=${language}`;
       console.log("Final URL:", fullUrl);
 
       // 4. Fetch the token
@@ -253,19 +247,38 @@ function App() {
     <div className="app-container">
       {!authenticated && <MPINModal onAuthenticate={() => setAuthenticated(true)} />}
       <div className="phone-mockup" style={{ filter: !authenticated ? 'blur(2px)' : 'none', pointerEvents: !authenticated ? 'none' : 'auto' }}>
-        <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', padding: 12 }}>
-          <span style={{ marginRight: 8, fontWeight: callType === 'web' ? 'bold' : 'normal' }}>Web Call</span>
+        <div className="toggle-row">
+          <span className="toggle-label" style={{ fontWeight: callType === 'web' ? 'bold' : 'normal' }}>Web Call</span>
           <label className="switch">
             <input type="checkbox" checked={callType === 'telephony'} onChange={e => setCallType(e.target.checked ? 'telephony' : 'web')} />
             <span className="slider round"></span>
           </label>
-          <span style={{ marginLeft: 8, fontWeight: callType === 'telephony' ? 'bold' : 'normal' }}>Telephony</span>
+          <span className="toggle-label" style={{ fontWeight: callType === 'telephony' ? 'bold' : 'normal' }}>Telephony</span>
+          <div className="language-dropdown-container">
+            <select
+              className="language-dropdown"
+              value={language}
+              onChange={e => setLanguage(e.target.value)}
+              aria-label="Select Language"
+            >
+              {LANGUAGE_OPTIONS.map(opt => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+            <span className="language-dropdown-arrow">
+              <svg width="16" height="16" viewBox="0 0 20 20" fill="none" style={{ verticalAlign: 'middle' }}>
+                <path d="M5 8l5 5 5-5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </span>
+          </div>
         </div>
+        {/* ...existing code for logo, call section, chat, bot... */}
         <div className="logo-container">
           <img src={maisyLogo} alt="mAIsy Logo" className="logo" />
           <div className="logo-subtitle">AI Ordering System</div>
         </div>
-
         {callType === 'telephony' && (
           <div style={{ marginTop: 24, marginBottom: 16, width: '100%' }}>
             <input
@@ -284,14 +297,20 @@ function App() {
             />
           </div>
         )}
-
         <div className="call-section">
+          {/* Loader: Show when connecting and not isSpeaking */}
+          {connecting && !isSpeaking && (
+            <div className="connecting-loader">
+              <div className="loader-spinner"></div>
+              <div className="loader-text">Connecting to the agent...</div>
+            </div>
+          )}
           <div className="call-button-container">
-          <button
-  onClick={!connected ? handleStartCall : disconnectFromRoom}
-  className={`call-button ${connecting ? 'connecting' : ''} ${!connected ? 'start-call' : 'end-call'}`}
-  disabled={connecting || (callType === 'telephony' && !connected && (!phoneNumber || !clientName))}
->
+            <button
+              onClick={connected || connecting ? disconnectFromRoom : handleStartCall}
+              className={`call-button ${connecting ? 'connecting' : ''} ${!connected && !connecting ? 'start-call' : 'end-call'}`}
+              disabled={callType === 'telephony' && !connected && !connecting && (!phoneNumber || !clientName)}
+            >
               <div className="call-icon">
                 {!connected ? (
                   <svg viewBox="0 0 24 24" fill="currentColor">
@@ -307,7 +326,7 @@ function App() {
             </button>
           </div>
           <div className="button-label">
-            {connecting ? 'CONNECTING...' : (!connected ? 'START CALL' : 'END CALL')}
+            {connecting ? 'END CALL' : (!connected ? 'START CALL' : 'END CALL')}
           </div>
           {callType === 'telephony' && telephonyStatus && (
             <div style={{ color: telephonyStatus === 'Call Initiated' ? 'green' : 'red', marginTop: 8 }}>{telephonyStatus}</div>
@@ -319,7 +338,6 @@ function App() {
             </div>
           )}
         </div>
-
         {/* Fixed height container to prevent layout shift */}
         <div className="chat-placeholder">
           {connected && (
@@ -339,7 +357,6 @@ function App() {
             </div>
           )}
         </div>
-
         <div className="bot-container">
           <img src={maisyBot} alt="mAIsy Assistant" className="bot-image" />
         </div>

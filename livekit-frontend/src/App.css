@@ -65,6 +65,69 @@ body {
   gap: 1.2rem;
 }
 
+/* Language Dropdown Styling */
+.language-dropdown-container {
+  margin-left: 16px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 40px;
+}
+
+.language-dropdown {
+  background: transparent;
+  color: var(--text-white);
+  font-weight: 600;
+  font-size: 16px;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  padding: 8px 8px 8px 8px; /* Reduce right padding for closer arrow */
+  border-radius: 6px;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  transition: background 0.2s;
+  letter-spacing: 0.2px;
+  width: auto;
+  min-width: unset;
+}
+
+.language-dropdown:hover {
+  background: rgba(255, 255, 255, 0.1); /* Subtle hover effect */
+}
+
+.language-dropdown:focus {
+  background: rgba(255, 255, 255, 0.15); /* Slightly more visible focus */
+  box-shadow: none; /* Remove default focus shadow */
+}
+
+.language-dropdown option {
+  color: #000000; /* Black text for dropdown options */
+  font-weight: 500;
+  background: #ffffff; /* White background for options */
+  font-size: 16px;
+}
+
+.language-dropdown-arrow {
+  position: absolute;
+  right: 2px; /* Move arrow very close to text */
+  pointer-events: none;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+.language-dropdown-arrow svg {
+  display: block;
+}
+
+.language-dropdown-arrow svg path {
+  stroke: var(--text-white); /* White arrow to match text */
+}
+
 .phone-mockup.light-bg {
   background-image: url('./assets/maisy-light-background.png');
 }
@@ -107,22 +170,28 @@ body {
   align-items: center;
   justify-content: flex-end;
   width: 100%;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
+  gap: 6px; /* Reduce gap for tighter alignment */
 }
 
 .toggle-label {
   font-size: 18px;
-  margin: 0 12px;
+  margin: 0 4px;
   font-weight: 600;
   letter-spacing: 0.5px;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  height: 28px;
 }
 
 .switch {
   position: relative;
   display: inline-block;
-  width: 48px;
-  height: 28px;
-  margin: 0 8px;
+  width: 40px;
+  height: 24px;
+  margin: 0 2px;
+  vertical-align: middle;
 }
 
 .switch input { display: none; }
@@ -389,8 +458,6 @@ input:checked + .slider:before {
     min-width: 100vw;
     box-sizing: border-box;
   }
-  html, body {
-  }
   .phone-mockup {
     width: 100vw !important;
     max-width: 100vw !important;
@@ -412,13 +479,14 @@ input:checked + .slider:before {
     font-size: 16px !important;
   }
   .toggle-label {
-    font-size: 17px !important;
-    margin: 0 10px !important;
+    font-size: 16px !important;
+    margin: 0 2px !important;
+    height: 22px;
   }
   .switch {
-    width: 38px;
-    height: 22px;
-    margin: 0 5px;
+    width: 32px;
+    height: 18px;
+    margin: 0 1px;
   }
   .slider {
     height: 22px;
@@ -428,6 +496,21 @@ input:checked + .slider:before {
     width: 16px;
     left: 3px;
     bottom: 3px;
+  }
+  .language-dropdown-container {
+    height: 32px;
+    min-width: unset;
+    padding: 0 2px;
+  }
+  .language-dropdown {
+    font-size: 15px;
+    padding: 4px 6px 4px 2px; /* Minimal right padding */
+    min-width: unset;
+    width: auto;
+  }
+  .language-dropdown-arrow {
+    font-size: 13px;
+    right: 2px;
   }
   .call-section {
     min-height: 120px;
@@ -514,5 +597,48 @@ html {
   }
   .bot-image {
     width: 160px;
+  }
+}
+
+.connecting-loader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 18px;
+  width: 100%;
+  z-index: 2;
+}
+
+.loader-spinner {
+  width: 32px;
+  height: 32px;
+  border: 4px solid rgba(255,255,255,0.2);
+  border-top: 4px solid var(--accent-yellow);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 10px;
+}
+
+.loader-text {
+  color: var(--text-white);
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-align: center;
+}
+
+@media (max-width: 700px) {
+  .connecting-loader {
+    margin-bottom: 10px;
+  }
+  .loader-spinner {
+    width: 22px;
+    height: 22px;
+    border-width: 3px;
+    margin-bottom: 6px;
+  }
+  .loader-text {
+    font-size: 14px;
   }
 }
