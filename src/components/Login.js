@@ -4,42 +4,38 @@ import './AuthForm.css';
 import indusLogo from '../assets/indusai-logo.png';
 import { GoogleLogin } from '@react-oauth/google';
 import { jwtDecode } from 'jwt-decode';
+import { login, googleLogin } from "../api";
 
 function Login() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const handleLogin = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-    const res = await fetch('http://localhost:8000/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    });
-    const data = await res.json();
-    if (data.success) {
-      localStorage.setItem('user', JSON.stringify({ email }));
-      navigate('/projects');
-    } else {
-      setError(data.error || 'Login failed');
+    setError("");
+    try {
+      await login({ username, password });
+      navigate("/projects");
+    } catch (err) {
+      setError("Login failed: " + err.message);
     }
   };
 
-  const handleGoogleSuccess = (credentialResponse) => {
+  const handleGoogleSuccess = async (credentialResponse) => {
     try {
       const decoded = jwtDecode(credentialResponse.credential);
-      const userObj = {
+      const data = await googleLogin(credentialResponse.credential);
+      localStorage.setItem('access_token', data.access_token);
+      localStorage.setItem('user', JSON.stringify({
         email: decoded.email,
         name: decoded.name || decoded.given_name || decoded.email,
         picture: decoded.picture
-      };
-      localStorage.setItem('user', JSON.stringify(userObj));
+      }));
       navigate('/projects');
     } catch (e) {
-      setError('Failed to decode Google token.');
+      setError('Google login failed: ' + (e.message || 'Unknown error'));
     }
   };
 
@@ -49,23 +45,11 @@ function Login() {
 
   return (
     <div className="auth-bg">
-      <form className="auth-card" onSubmit={handleLogin}>
+      <form className="auth-card" onSubmit={handleSubmit}>
         <img src={indusLogo} alt="Indus AI Logo" className="indus-logo-auth" />
         <div className="auth-title">Sign in to Indus AI</div>
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-          required
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={e => setPassword(e.target.value)}
-          required
-        />
+        <input value={username} onChange={e => setUsername(e.target.value)} placeholder="Username" />
+        <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Password" />
         <button type="submit">Login</button>
         <div className="auth-or">or</div>
         <GoogleLogin

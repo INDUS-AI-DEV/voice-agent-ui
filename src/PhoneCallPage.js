@@ -3,6 +3,7 @@ import { Room, createLocalAudioTrack } from 'livekit-client';
 import './PhoneCallPage.css';  // Make sure this path is correct
 import maisyLogo from './assets/maisy-logo.png';
 import maisyBot from './assets/maisy-image.png';
+import { makeSingleCall } from "./api";
 
 const PhoneCallPage = () => {
   console.log('PhoneCallPage rendered'); // Add this line
@@ -34,22 +35,11 @@ const PhoneCallPage = () => {
 
     setConnecting(true);
     try {
-      // Call the makeCall endpoint with all details
-      const response = await fetch('/makeCall', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          clientDetails,
-          productDetails
-        }),
+      // Call the makeSingleCall endpoint with all details
+      await makeSingleCall({
+        clientDetails,
+        productDetails
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to initiate call');
-      }
-
       // Continue with LiveKit room connection
       const server_url = process.env.REACT_APP_TOKEN_SERVER_URL;
       const userId = `user-${Math.random().toString(36).substring(2, 8)}`;
@@ -69,6 +59,7 @@ const PhoneCallPage = () => {
       await newRoom.localParticipant.publishTrack(micTrack);
     } catch (err) {
       console.error('Error:', err);
+      alert('Failed to initiate call: ' + err.message);
     } finally {
       setConnecting(false);
     }

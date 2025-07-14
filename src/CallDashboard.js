@@ -5,6 +5,7 @@ import maisyLogo from './assets/maisy-logo.png';
 import favicon from './assets/favicon.ico';
 import indusaiLogo from './assets/indusai-logo.png';
 import maleUser from './assets/male-user.jpg';
+import { getCallIds, getConversation } from "./api";
 
 const NAV = {
   DASHBOARD: 'dashboard',
@@ -24,6 +25,7 @@ const CallDashboard = () => {
   const [productDetails, setProductDetails] = useState({ productList1: '', productList2: '' });
   const [testCallConnecting, setTestCallConnecting] = useState(false);
   const [testCallConnected, setTestCallConnected] = useState(false);
+  const [error, setError] = useState("");
 
   // State for Test Web Call
   const [room, setRoom] = useState(null);
@@ -34,33 +36,24 @@ const CallDashboard = () => {
   const [testCallType, setTestCallType] = useState(null); // 'web' or 'phone'
 
   const fetchCalls = useCallback(async () => {
+    setError("");
     try {
-      const response = await fetch(`http://localhost:8000/get-call-ids?skip=${page * 10}&limit=10`);
-      const data = await response.json();
+      const data = await getCallIds();
       setCalls(Object.entries(data));
-    } catch (error) {
+    } catch (err) {
+      setError("Failed to fetch calls: " + err.message);
       setCalls([]);
     }
-  }, [page]);
+  }, []);
 
   const fetchTranscript = async (callId) => {
-    setLoading(true);
+    setError("");
     try {
-      const response = await fetch(`http://localhost:8000/get-conversation/${callId}`);
-      const rawData = await response.json();
-      const data = typeof rawData === 'string' ? JSON.parse(rawData) : rawData;
-      // Assume transcript is in data.session_history.items
-      setTranscript(data.session_history?.items || []);
-      setAnalytics({
-        userName: data.user_details?.name || 'Unknown',
-        phoneNumber: data.user_details?.phone_number || 'Unknown',
-        duration: 'Unknown',
-      });
-    } catch (error) {
-      setTranscript([]);
-      setAnalytics(null);
-    } finally {
-      setLoading(false);
+      const data = await getConversation(callId);
+      setTranscript(data);
+    } catch (err) {
+      setError("Failed to fetch transcript: " + err.message);
+      setTranscript(null);
     }
   };
 
@@ -271,6 +264,7 @@ const CallDashboard = () => {
 
   return (
     <div className="dashboard-root">
+      {error && <div className="error">{error}</div>}
       {renderTopBar()}
       <div className="dashboard-main">
         {renderSidebar()}

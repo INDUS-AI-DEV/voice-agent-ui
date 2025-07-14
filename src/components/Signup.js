@@ -1,50 +1,44 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { GoogleLogin } from '@react-oauth/google';
-import { jwtDecode } from 'jwt-decode';
 import './AuthForm.css';
 import indusLogo from '../assets/indusai-logo.png';
+import { GoogleLogin } from '@react-oauth/google';
+import { jwtDecode } from 'jwt-decode';
+import { register, googleLogin } from "../api";
 
 function Signup() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState('');
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
 
-  const handleSignup = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-    if (password !== confirmPassword) {
-      setError('Passwords do not match');
-      return;
-    }
-    const res = await fetch('http://localhost:8000/auth/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    });
-    const data = await res.json();
-    if (data.success) {
-      localStorage.setItem('user', JSON.stringify({ email }));
-      navigate('/projects');
-    } else {
-      setError(data.error || 'Registration failed');
+    setError("");
+    setSuccess(false);
+    try {
+      await register({ username, password });
+      setSuccess(true);
+      setTimeout(() => navigate("/login"), 1500);
+    } catch (err) {
+      setError("Registration failed: " + err.message);
     }
   };
 
-  const handleGoogleSuccess = (credentialResponse) => {
+  const handleGoogleSuccess = async (credentialResponse) => {
     try {
       const decoded = jwtDecode(credentialResponse.credential);
-      const userObj = {
+      const data = await googleLogin(credentialResponse.credential);
+      localStorage.setItem('access_token', data.access_token);
+      localStorage.setItem('user', JSON.stringify({
         email: decoded.email,
         name: decoded.name || decoded.given_name || decoded.email,
         picture: decoded.picture
-      };
-      localStorage.setItem('user', JSON.stringify(userObj));
+      }));
       navigate('/projects');
     } catch (e) {
-      setError('Failed to decode Google token.');
+      setError('Google signup failed: ' + (e.message || 'Unknown error'));
     }
   };
 
@@ -54,31 +48,12 @@ function Signup() {
 
   return (
     <div className="auth-bg">
-      <form className="auth-card" onSubmit={handleSignup}>
+      <form className="auth-card" onSubmit={handleSubmit}>
         <img src={indusLogo} alt="Indus AI Logo" className="indus-logo-auth" />
         <div className="auth-title">Sign up for Indus AI</div>
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-          required
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={e => setPassword(e.target.value)}
-          required
-        />
-        <input
-          type="password"
-          placeholder="Confirm Password"
-          value={confirmPassword}
-          onChange={e => setConfirmPassword(e.target.value)}
-          required
-        />
-        <button type="submit">Sign Up</button>
+        <input value={username} onChange={e => setUsername(e.target.value)} placeholder="Username" />
+        <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Password" />
+        <button type="submit">Register</button>
         <div className="auth-or">or</div>
         <GoogleLogin
           onSuccess={handleGoogleSuccess}
@@ -90,6 +65,7 @@ function Signup() {
           logo_alignment="center"
         />
         {error && <div className="auth-error">{error}</div>}
+        {success && <div className="auth-success">Registration successful! Please login.</div>}
         <div className="auth-link">Already have an account? <Link to="/login">Sign in</Link></div>
       </form>
     </div>

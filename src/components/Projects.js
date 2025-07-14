@@ -5,20 +5,28 @@ import indusLogo from '../assets/indusai-logo.png';
 import { FaUserCircle, FaUserEdit, FaSignOutAlt } from 'react-icons/fa';
 import { GoogleLogin } from '@react-oauth/google';
 import { jwtDecode } from 'jwt-decode';
+import { fetchMyProjects } from "../api";
 
 function Projects() {
   const [projects, setProjects] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [user, setUser] = useState(() => JSON.parse(localStorage.getItem('user')) || null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    setProjects([
-      { id: 'gauri', name: 'Gauri', description: 'AI-powered assistant for business insights.' },
-      { id: 'dabur', name: 'Dabur', description: 'Customer engagement and analytics platform.' },
-      { id: 'objection-handling', name: 'Objection Handling', description: 'Smart objection handling for sales teams.' }
-    ]);
+    setLoading(true);
+    fetchMyProjects()
+      .then((data) => {
+        setProjects(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        setError("Failed to fetch projects: " + err.message);
+        setLoading(false);
+      });
   }, []);
 
   // Close dropdown when clicking outside
@@ -125,23 +133,19 @@ function Projects() {
         </div>
       </header>
       <main className="projects-content">
+        {loading && <div>Loading projects...</div>}
+        {error && <div className="error">{error}</div>}
         <div className="projects-list-grid">
-          {projects.length === 0 ? (
+          {projects.length === 0 && !loading && !error && (
             <div className="no-projects-message">No projects found or you are not authorized.</div>
-          ) : (
-            projects.map((project) => (
-              <div className="project-card" key={project.id}>
-                <div className="project-card-title">{project.name}</div>
-                <div className="project-card-desc">{project.description}</div>
-                <div className="project-card-actions">
-                  <button className="manage-btn" onClick={() => handleManage(project.id)}>
-                    Manage
-                  </button>
-                  <button className="learn-more-btn">Learn more</button>
-                </div>
-              </div>
-            ))
           )}
+          {projects.map((project) => (
+            <div key={project.id} className="project-card">
+              <h3>{project.name}</h3>
+              <p>{project.description}</p>
+              <button onClick={() => handleManage(project.id)}>Manage</button>
+            </div>
+          ))}
         </div>
       </main>
     </div>
