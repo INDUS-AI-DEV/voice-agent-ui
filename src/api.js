@@ -1,5 +1,5 @@
 // API base URL
-export const API_BASE_URL = "http://localhost:8001";
+export const API_BASE_URL = "https://indusai-backend.onrender.com";
 
 // --- Auth ---
 export async function register({ username, password, role = "user", projects = [] }) {
