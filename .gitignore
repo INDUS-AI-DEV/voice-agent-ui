@@ -1,0 +1,14 @@
+# Node modules
+node_modules/
+# Python virtual environment
+.venv/
+# Mac system files
+.DS_Store
+# Windows system files
+Thumbs.db
+# Log files
+*.log
+# Environment files
+.env
+# VSCode settings
+.vscode/ 
