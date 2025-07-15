@@ -152,10 +152,12 @@ body {
 }
 
 .logo {
-  width: 120px;
-  height: auto;
-  margin-bottom: 10px;
-  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+  height: 40px;
+  width: auto;
+  max-width: 80px;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto 8px auto;
 }
 
 .logo-subtitle {

@@ -3,9 +3,7 @@ import { Room, createLocalAudioTrack, Track } from 'livekit-client';
 import './App.css';
 
 // Import assets
-import maisyLogo from './assets/maisy-logo.png';
-import greenCallButton from './assets/MakeCallButton.jpg';
-import redCallButton from './assets/EndCallButton.jpg';
+import indusLogo from './assets/Indus Logo.png';
 import maisyBot from './assets/maisy-image.png';
 
 // Language options for dropdown (full names)
@@ -17,78 +15,7 @@ const LANGUAGE_OPTIONS = [
   { value: 'Af', label: 'African' },
 ];
 
-// OTP/MPIN Modal Component
-function MPINModal({ onAuthenticate }) {
-  const [mpin, setMpin] = useState(['', '', '', '']);
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  const handleChange = (e, idx) => {
-    const val = e.target.value.replace(/\D/g, '');
-    if (val.length > 1) return;
-    const newMpin = [...mpin];
-    newMpin[idx] = val;
-    setMpin(newMpin);
-    // Move to next input if filled
-    if (val && idx < 3) {
-      document.getElementById(`mpin-input-${idx + 1}`).focus();
-    }
-  };
-
-  const handleKeyDown = (e, idx) => {
-    if (e.key === 'Backspace' && !mpin[idx] && idx > 0) {
-      document.getElementById(`mpin-input-${idx - 1}`).focus();
-    }
-  };
-
-  // Commented out backend verification for frontend testing only
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-    // Directly authenticate for frontend testing
-    setTimeout(() => {
-      onAuthenticate();
-      setLoading(false);
-    }, 500);
-  };
-
-  return (
-    <div style={{
-      position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
-      background: 'rgba(0,0,0,0.7)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center'
-    }}>
-      <form onSubmit={handleSubmit} style={{
-        background: '#fff', borderRadius: 16, padding: 32, boxShadow: '0 2px 16px rgba(0,0,0,0.2)',
-        display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 320
-      }}>
-        <div style={{ fontWeight: 'bold', fontSize: 18, marginBottom: 16 }}>Enter 4-digit MPIN</div>
-        <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-          {mpin.map((digit, idx) => (
-            <input
-              key={idx}
-              id={`mpin-input-${idx}`}
-              type="password"
-              inputMode="numeric"
-              maxLength={1}
-              value={digit}
-              onChange={e => handleChange(e, idx)}
-              onKeyDown={e => handleKeyDown(e, idx)}
-              style={{ width: 40, height: 40, fontSize: 24, textAlign: 'center', borderRadius: 8, border: '1px solid #ccc' }}
-              autoFocus={idx === 0}
-            />
-          ))}
-        </div>
-        <button type="submit" disabled={loading || mpin.some(d => !d)} style={{
-          width: '100%', padding: '10px 0', borderRadius: 8, background: '#1a73e8', color: '#fff', fontWeight: 'bold', fontSize: 16, border: 'none', cursor: 'pointer', marginBottom: 8
-        }}>
-          {loading ? 'Verifying...' : 'Login'}
-        </button>
-        {error && <div style={{ color: 'red', marginTop: 8 }}>{error}</div>}
-      </form>
-    </div>
-  );
-}
+// Remove MPINModal and all authentication logic
 
 function App() {
   const [room, setRoom] = useState(null);
@@ -96,7 +23,7 @@ function App() {
   const [connecting, setConnecting] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [chatMessages, setChatMessages] = useState([]);
-  const [authenticated, setAuthenticated] = useState(false);
+  // Remove: const [authenticated, setAuthenticated] = useState(false);
   const [callType, setCallType] = useState('web'); // 'web' or 'telephony'
   const [phoneNumber, setPhoneNumber] = useState('');
   const [clientName, setClientName] = useState('');
@@ -244,8 +171,8 @@ function App() {
 
   return (
     <div className="app-container">
-      {!authenticated && <MPINModal onAuthenticate={() => setAuthenticated(true)} />}
-      <div className="phone-mockup" style={{ filter: !authenticated ? 'blur(2px)' : 'none', pointerEvents: !authenticated ? 'none' : 'auto' }}>
+      {/* Remove MPINModal and authentication blur */}
+      <div className="phone-mockup">
         <div className="toggle-row">
           <span className="toggle-label" style={{ fontWeight: callType === 'web' ? 'bold' : 'normal' }}>Web Call</span>
           <label className="switch">
@@ -275,8 +202,8 @@ function App() {
         </div>
         {/* ...existing code for logo, call section, chat, bot... */}
         <div className="logo-container">
-          <img src={maisyLogo} alt="mAIsy Logo" className="logo" />
-          <div className="logo-subtitle">AI Ordering System</div>
+          <img src={indusLogo} alt="Indus Logo" className="logo" />
+          <div className="logo-subtitle">AI Medicare System</div>
         </div>
         {callType === 'telephony' && (
           <div style={{ marginTop: 24, marginBottom: 16, width: '100%' }}>
