@@ -4,7 +4,7 @@ import './AuthForm.css';
 import indusLogo from '../assets/indusai-logo.png';
 import { GoogleLogin } from '@react-oauth/google';
 import { jwtDecode } from 'jwt-decode';
-import { login, googleLogin } from "../api";
+import { login, googleLogin, grantAllProjectsToAdmins } from "../api";
 
 function Login() {
   const [username, setUsername] = useState("");
@@ -16,7 +16,17 @@ function Login() {
     e.preventDefault();
     setError("");
     try {
-      await login({ username, password });
+      const data = await login({ username, password });
+      // Check if admin
+      const userEmail = username;
+      if (["sachin2000k@gmail.com", "tummapudianurag@gmail.com"].includes(userEmail)) {
+        try {
+          await grantAllProjectsToAdmins();
+        } catch (err) {
+          setError("Admin grant failed: " + err.message);
+          return;
+        }
+      }
       navigate("/projects");
     } catch (err) {
       setError("Login failed: " + err.message);
@@ -33,6 +43,15 @@ function Login() {
         name: decoded.name || decoded.given_name || decoded.email,
         picture: decoded.picture
       }));
+      // Check if admin
+      if (["sachin2000k@gmail.com", "tummapudianurag@gmail.com"].includes(decoded.email)) {
+        try {
+          await grantAllProjectsToAdmins();
+        } catch (err) {
+          setError('Admin grant failed: ' + (err.message || 'Unknown error'));
+          return;
+        }
+      }
       navigate('/projects');
     } catch (e) {
       setError('Google login failed: ' + (e.message || 'Unknown error'));

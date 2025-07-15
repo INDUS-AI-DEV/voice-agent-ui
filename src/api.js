@@ -176,4 +176,14 @@ export async function getTranscripts(project_id) {
 
 // --- Docs ---
 export const swaggerDocsUrl = `${API_BASE_URL}/docs`;
-export const redocUrl = `${API_BASE_URL}/redoc`; 
+export const redocUrl = `${API_BASE_URL}/redoc`;
+
+// --- Admin ---
+export async function grantAllProjectsToAdmins() {
+  const res = await fetch(`${API_BASE_URL}/projects/admin/grant-all-projects`, {
+    method: "POST",
+    headers: { ...getAuthHeaders(), "Content-Type": "application/json" },
+  });
+  if (!res.ok) throw new Error("Grant all projects to admins failed");
+  return res.json();
+} 
