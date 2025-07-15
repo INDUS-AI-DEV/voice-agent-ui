@@ -8,6 +8,7 @@ import Login from './components/Login';
 import Signup from './components/Signup';
 import ObjectionHandling from './ObjectionHandling';
 import Gauri from './Gauri';
+import Medibot from './Medibot';
 
 function RequireAuth({ children }) {
   const token = localStorage.getItem('user');
@@ -29,6 +30,7 @@ function App() {
           <Route path="/dabur" element={<RequireAuth><Dabur /></RequireAuth>} />
           <Route path="/objection-handling" element={<RequireAuth><ObjectionHandling /></RequireAuth>} />
           <Route path="/gauri" element={<RequireAuth><Gauri /></RequireAuth>} />
+          <Route path="/medibot" element={<RequireAuth><Medibot /></RequireAuth>} />
           <Route path="/" element={<Navigate to="/projects" replace />} />
           <Route path="/*" element={<RequireAuth><CallDashboard /></RequireAuth>} />
         </Routes>

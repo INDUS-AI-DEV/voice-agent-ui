@@ -19,6 +19,7 @@ function Projects() {
   // Replace useEffect and fetchMyProjects with hardcoded projects
   const projects = [
     { id: 'dabur', name: 'Dabur', description: 'Dabur project description' },
+    { id: 'medibot', name: 'Medibot', description: 'Medibot project description' },
     { id: 'objection-handling', name: 'Objection Handling', description: 'Objection Handling project description' },
     { id: 'gauri', name: 'Gauri', description: 'Gauri project description' },
   ];
@@ -37,6 +38,8 @@ function Projects() {
   const handleManage = (projectId) => {
     if (projectId === 'dabur') {
       navigate('/dabur');
+    } else if (projectId === 'medibot') {
+      navigate('/medibot');
     } else if (projectId === 'objection-handling') {
       navigate('/objection-handling');
     } else if (projectId === 'gauri') {

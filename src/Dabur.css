@@ -1,4 +1,5 @@
-.dabur-container {
+/* This is a copy of Dabur.css for Medibot */
+.medibot-container {
   width: 80%;
   margin: 40px auto;
   padding: 32px;
@@ -9,17 +10,17 @@
   position: relative;
   text-align: center;
 }
-.dabur-title {
+.medibot-title {
   font-size: 2rem;
   margin-bottom: 18px;
   font-family: 'Segoe UI', sans-serif;
 }
-.dabur-description {
+.medibot-description {
   font-size: 1.1rem;
   margin-bottom: 32px;
   color: #444;
 }
-.dabur-placeholder {
+.medibot-placeholder {
   margin-top: 40px;
   font-size: 1.2rem;
   color: #888;
