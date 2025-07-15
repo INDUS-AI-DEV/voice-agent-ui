@@ -16,7 +16,7 @@ function Login() {
     e.preventDefault();
     setError("");
     try {
-      const data = await login({ username, password });
+      await login({ username, password });
       // Check if admin
       const userEmail = username;
       if (["sachin2000k@gmail.com", "tummapudianurag@gmail.com"].includes(userEmail)) {

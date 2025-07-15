@@ -5,29 +5,23 @@ import indusLogo from '../assets/indusai-logo.png';
 import { FaUserCircle, FaUserEdit, FaSignOutAlt } from 'react-icons/fa';
 import { GoogleLogin } from '@react-oauth/google';
 import { jwtDecode } from 'jwt-decode';
-import { fetchMyProjects } from "../api";
+// Remove: import { fetchMyProjects } from "../api";
 
 function Projects() {
-  const [projects, setProjects] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  // Remove: const [projects, setProjects] = useState([]);
+  // Remove: const [loading, setLoading] = useState(true);
+  // Remove: const [error, setError] = useState("");
   const [user, setUser] = useState(() => JSON.parse(localStorage.getItem('user')) || null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    setLoading(true);
-    fetchMyProjects()
-      .then((data) => {
-        setProjects(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        setError("Failed to fetch projects: " + err.message);
-        setLoading(false);
-      });
-  }, []);
+  // Replace useEffect and fetchMyProjects with hardcoded projects
+  const projects = [
+    { id: 'dabur', name: 'Dabur', description: 'Dabur project description' },
+    { id: 'objection-handling', name: 'Objection Handling', description: 'Objection Handling project description' },
+    { id: 'gauri', name: 'Gauri', description: 'Gauri project description' },
+  ];
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -133,10 +127,9 @@ function Projects() {
         </div>
       </header>
       <main className="projects-content">
-        {loading && <div>Loading projects...</div>}
-        {error && <div className="error">{error}</div>}
+        {/* Remove loading and error handling related to fetchMyProjects */}
         <div className="projects-list-grid">
-          {projects.length === 0 && !loading && !error && (
+          {projects.length === 0 && (
             <div className="no-projects-message">No projects found or you are not authorized.</div>
           )}
           {projects.map((project) => (

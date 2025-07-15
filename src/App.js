@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import CallDashboard from './CallDashboard';
 import Projects from './components/Projects';
@@ -29,6 +29,7 @@ function App() {
           <Route path="/dabur" element={<RequireAuth><Dabur /></RequireAuth>} />
           <Route path="/objection-handling" element={<RequireAuth><ObjectionHandling /></RequireAuth>} />
           <Route path="/gauri" element={<RequireAuth><Gauri /></RequireAuth>} />
+          <Route path="/" element={<Navigate to="/projects" replace />} />
           <Route path="/*" element={<RequireAuth><CallDashboard /></RequireAuth>} />
         </Routes>
       </Router>
