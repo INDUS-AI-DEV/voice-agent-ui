@@ -8,16 +8,22 @@ import ObjectionHandling from './ObjectionHandling';
 import ObjectionHandlingManagerReview from './ObjectionHandlingManagerReview';
 import ObjectionHandlingObjHandling from './ObjectionHandlingObjHandling';
 import ObjectionHandlingRolePlay from './ObjectionHandlingRolePlay';
+import ObjectionHandlingBackup from './ObjectionHandlingBackup'
+import ShopImageAnalyzer from './components/ShopImageAnalyzer';
+import Plumber from './Plumber';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
     <BrowserRouter>
       <Routes>
-        <Route path="/objection-handling" element={<ObjectionHandling />} />
+        <Route path="/objection-handling-v1" element={<ObjectionHandling />} />
         <Route path="/objection-manager-review" element={<ObjectionHandlingManagerReview />} />
         <Route path="/objection-obj-handling" element={<ObjectionHandlingObjHandling />} />
         <Route path="/objection-role-play" element={<ObjectionHandlingRolePlay />} />
+	      <Route path="objection-handling" element={<ObjectionHandlingBackup />} />
+        <Route path="/shop-analyzer" element={<ShopImageAnalyzer />} />
+        <Route path="/plumber" element={<Plumber />} />
         <Route path="/*" element={<App />} />
       </Routes>
     </BrowserRouter>

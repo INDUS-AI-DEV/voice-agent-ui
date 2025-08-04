@@ -2,10 +2,8 @@ import { useState, useEffect } from 'react';
 import { Room, createLocalAudioTrack, Track } from 'livekit-client';
 import './App.css';
 
-// Import assets
+// Import assets - you'll need to replace these with your actual imports
 import maisyLogo from './assets/maisy-logo.png';
-import greenCallButton from './assets/MakeCallButton.jpg';
-import redCallButton from './assets/EndCallButton.jpg';
 import maisyBot from './assets/maisy-image.png';
 
 // Language options for dropdown (full names)
@@ -14,7 +12,7 @@ const LANGUAGE_OPTIONS = [
   { value: 'En', label: 'English' },
   { value: 'Ta', label: 'Tamil' },
   { value: 'Ar', label: 'Arabic' },
-  // { value: 'Af', label: 'African' },
+  { value: 'Af', label: 'African' },
 ];
 
 // OTP/MPIN Modal Component
@@ -41,31 +39,14 @@ function MPINModal({ onAuthenticate }) {
     }
   };
 
-  // Commented out backend verification for frontend testing only
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     setError('');
     setLoading(true);
-    const mpinValue = mpin.join('');
-    try {
-      // Stubbed API call - replace with your backend endpoint
-      const server_url = process.env.REACT_APP_BACKEND_SERVER
-      const resp = await fetch(`${server_url}/api/verify-mpin`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mpin: mpinValue })
-      });
-      const data = await resp.json();
-      if (resp.ok && data.success) {
-        onAuthenticate();
-      } else {
-        setError(data.error || 'Invalid MPIN');
-      }
-    } catch (err) {
-      setError('Network error');
-    } finally {
+    // Directly authenticate for frontend testing
+    setTimeout(() => {
+      onAuthenticate();
       setLoading(false);
-    }
+    }, 500);
   };
 
   return (
@@ -73,7 +54,7 @@ function MPINModal({ onAuthenticate }) {
       position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
       background: 'rgba(0,0,0,0.7)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center'
     }}>
-      <form onSubmit={handleSubmit} style={{
+      <div style={{
         background: '#fff', borderRadius: 16, padding: 32, boxShadow: '0 2px 16px rgba(0,0,0,0.2)',
         display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 320
       }}>
@@ -94,13 +75,13 @@ function MPINModal({ onAuthenticate }) {
             />
           ))}
         </div>
-        <button type="submit" disabled={loading || mpin.some(d => !d)} style={{
+        <button onClick={handleSubmit} disabled={loading || mpin.some(d => !d)} style={{
           width: '100%', padding: '10px 0', borderRadius: 8, background: '#1a73e8', color: '#fff', fontWeight: 'bold', fontSize: 16, border: 'none', cursor: 'pointer', marginBottom: 8
         }}>
           {loading ? 'Verifying...' : 'Login'}
         </button>
         {error && <div style={{ color: 'red', marginTop: 8 }}>{error}</div>}
-      </form>
+      </div>
     </div>
   );
 }
@@ -112,10 +93,7 @@ function App() {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [chatMessages, setChatMessages] = useState([]);
   const [authenticated, setAuthenticated] = useState(false);
-  const [callType, setCallType] = useState('web'); // 'web' or 'telephony'
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [clientName, setClientName] = useState('');
-  const [telephonyStatus, setTelephonyStatus] = useState('');
+  const [activeAgent, setActiveAgent] = useState(null); // 'inbound' or 'outbound'
   const [language, setLanguage] = useState('Hi'); // Default to Hindi
 
   useEffect(() => {
@@ -167,31 +145,41 @@ function App() {
     };
   }, [room]);
 
-  const connectToRoom = async () => {
+  const connectToRoom = async (agentType) => {
     // Prevent multiple simultaneous connection attempts
     if (connecting || connected) return;
     setConnecting(true);
+    setActiveAgent(agentType);
+    
     try {
-      const server_url = process.env.REACT_APP_TOKEN_SERVER_URL_DABUR;
+      const server_url = process.env.REACT_APP_TOKEN_SERVER_URL_PLUMBER;
       console.log("Server url:", server_url);
 
-      // 1. Dynamically generate a unique user ID
+      // Dynamically generate a unique user ID and room ID
       const userId = `user-${Math.random().toString(36).substring(2, 8)}`;
-
-      // 2. (Optional) Fixed room, or generate room dynamically if needed
       const roomId = `room-${Math.random().toString(36).substring(2, 8)}`;
 
-      // 3. Build final URL dynamically, now with language param
-      const fullUrl = `${server_url}room=${roomId}&user=${userId}&language=${language}`;
-      console.log("Final URL:", fullUrl);
+      // Include language parameter in the URL
+      const fullUrl = `${server_url}/api/token/plumber?room=${roomId}&user=${userId}&agent_type=${agentType}&language=${language}`;
+      console.log("API URL:", fullUrl);
 
-      // 4. Fetch the token
+      // Fetch the token
       const resp = await fetch(fullUrl);
+      console.log("Response status:", resp.status);
+      
+      if (!resp.ok) {
+        const errorText = await resp.text();
+        console.error("Error response:", errorText);
+        throw new Error(`HTTP ${resp.status}: ${errorText}`);
+      }
+      
       const data = await resp.json();
+      console.log("Token data:", data);
       const token = data.token;
 
+      console.log("Connecting to:", process.env.REACT_APP_LIVEKIT_WS_URL_PLUMBER);
       const newRoom = new Room();
-      await newRoom.connect(process.env.REACT_APP_LIVEKIT_WS_URL, token);
+      await newRoom.connect(process.env.REACT_APP_LIVEKIT_WS_URL_PLUMBER, token);
 
       setRoom(newRoom);
       setConnected(true);
@@ -199,9 +187,10 @@ function App() {
       const micTrack = await createLocalAudioTrack();
       await newRoom.localParticipant.publishTrack(micTrack);
 
-      console.log('Connected and microphone publishing.');
+      console.log(`Connected to ${agentType} agent and microphone publishing.`);
     } catch (err) {
       console.error('Error connecting to Agent:', err);
+      alert(`Connection failed: ${err.message}`);
     } finally {
       setConnecting(false);
     }
@@ -218,6 +207,7 @@ function App() {
       setRoom(null);
       setChatMessages([]);
       setIsSpeaking(false);
+      setActiveAgent(null);
       console.log('Disconnected.');
     } catch (err) {
       console.error('Error disconnecting:', err);
@@ -226,126 +216,180 @@ function App() {
     }
   };
 
-  const handleStartCall = async () => {
-    if (callType === 'web') {
-      connectToRoom();
-    } else {
-      // Telephony call logic
-      setTelephonyStatus('');
-      if (!phoneNumber || !clientName) {
-        setTelephonyStatus('Please enter phone number and client name.');
-        return;
-      }
-      setConnecting(true);
-      try {
-        const server_url = process.env.REACT_APP_BACKEND_SERVER
-        const resp = await fetch(`${server_url}/api/start-telephony-call`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ phoneNumber, clientName })
-        });
-        const data = await resp.json();
-        if (resp.ok && data.success) {
-          setTelephonyStatus('Call Initiated');
-        } else {
-          setTelephonyStatus(data.error || 'Failed to initiate call');
-        }
-      } catch (err) {
-        setTelephonyStatus('Network error');
-      } finally {
-        setConnecting(false);
-      }
-    }
+  // Inline styles for the two call buttons
+  const callButtonsContainerStyle = {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '16px',
+    width: '100%',
+    alignItems: 'center',
+    marginBottom: '20px'
+  };
+
+  const agentButtonStyle = {
+    width: '200px',
+    padding: '12px 16px',
+    borderRadius: '12px',
+    border: 'none',
+    fontSize: '16px',
+    fontWeight: '600',
+    cursor: 'pointer',
+    transition: 'all 0.3s ease',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '8px',
+    minHeight: '48px',
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)'
+  };
+
+  const inboundButtonStyle = {
+    ...agentButtonStyle,
+    background: connected && activeAgent === 'inbound' 
+      ? 'linear-gradient(135deg, #f44336 0%, #d32f2f 100%)' 
+      : 'linear-gradient(135deg, #4CAF50 0%, #45a049 100%)',
+    color: 'white'
+  };
+
+  const outboundButtonStyle = {
+    ...agentButtonStyle,
+    background: connected && activeAgent === 'outbound' 
+      ? 'linear-gradient(135deg, #f44336 0%, #d32f2f 100%)' 
+      : 'linear-gradient(135deg, #2196F3 0%, #1976D2 100%)',
+    color: 'white'
+  };
+
+  const disabledButtonStyle = {
+    ...agentButtonStyle,
+    background: 'linear-gradient(135deg, #6c757d 0%, #5a6268 100%)',
+    color: 'white',
+    cursor: 'not-allowed',
+    opacity: 0.6
+  };
+
+  const loadingSpinnerStyle = {
+    width: '16px',
+    height: '16px',
+    border: '2px solid rgba(255,255,255,0.3)',
+    borderTop: '2px solid white',
+    borderRadius: '50%',
+    animation: 'spin 1s linear infinite'
   };
 
   return (
     <div className="app-container">
+      <style>{`
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+        .agent-button:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+        }
+        .agent-button:active {
+          transform: translateY(0);
+        }
+        @media (max-width: 700px) {
+          .agent-buttons-container {
+            gap: 12px !important;
+          }
+          .agent-button {
+            width: 180px !important;
+            font-size: 14px !important;
+            padding: 10px 12px !important;
+            min-height: 40px !important;
+          }
+        }
+      `}</style>
+      
       {!authenticated && <MPINModal onAuthenticate={() => setAuthenticated(true)} />}
-      <div className="phone-mockup" style={{ filter: !authenticated ? 'blur(2px)' : 'none', pointerEvents: !authenticated ? 'none' : 'auto' }}>
-        <div className="toggle-row">
-          <span className="toggle-label" style={{ fontWeight: callType === 'web' ? 'bold' : 'normal' }}>Web Call</span>
-          <label className="switch">
-            <input type="checkbox" checked={callType === 'telephony'} onChange={e => setCallType(e.target.checked ? 'telephony' : 'web')} />
-            <span className="slider round"></span>
-          </label>
-          <span className="toggle-label" style={{ fontWeight: callType === 'telephony' ? 'bold' : 'normal' }}>Telephony</span>
-          <div className="language-dropdown-container">
-            <select
-              className="language-dropdown"
-              value={language}
-              onChange={e => setLanguage(e.target.value)}
-              aria-label="Select Language"
-            >
-              {LANGUAGE_OPTIONS.map(opt => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-            <span className="language-dropdown-arrow">
-              <svg width="16" height="16" viewBox="0 0 20 20" fill="none" style={{ verticalAlign: 'middle' }}>
-                <path d="M5 8l5 5 5-5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </span>
-          </div>
+      
+      <div className="phone-mockup" style={{
+        filter: !authenticated ? 'blur(2px)' : 'none',
+        pointerEvents: !authenticated ? 'none' : 'auto'
+      }}>
+        
+        {/* Language Dropdown - positioned in top right */}
+        <div className="language-dropdown-container">
+          <select
+            className="language-dropdown"
+            value={language}
+            onChange={e => setLanguage(e.target.value)}
+            aria-label="Select Language"
+          >
+            {LANGUAGE_OPTIONS.map(opt => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+          <span className="language-dropdown-arrow">
+            <svg width="16" height="16" viewBox="0 0 20 20" fill="none" style={{ verticalAlign: 'middle' }}>
+              <path d="M5 8l5 5 5-5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </span>
         </div>
-        {/* ...existing code for logo, call section, chat, bot... */}
+        
+        {/* Logo Section */}
         <div className="logo-container">
           <img src={maisyLogo} alt="mAIsy Logo" className="logo" />
-          <div className="logo-subtitle">AI Ordering System</div>
+          <div className="logo-subtitle">AI Call System</div>
         </div>
-        {callType === 'telephony' && (
-          <div style={{ marginTop: 24, marginBottom: 16, width: '100%' }}>
-            <input
-              type="text"
-              placeholder="Phone Number"
-              value={phoneNumber}
-              onChange={e => setPhoneNumber(e.target.value.replace(/[^0-9+]/g, ''))}
-              style={{ width: '100%', marginBottom: 8, padding: 8, borderRadius: 8, border: '1px solid #ccc', fontSize: 16 }}
-            />
-            <input
-              type="text"
-              placeholder="Client Name"
-              value={clientName}
-              onChange={e => setClientName(e.target.value)}
-              style={{ width: '100%', marginBottom: 8, padding: 8, borderRadius: 8, border: '1px solid #ccc', fontSize: 16 }}
-            />
-          </div>
-        )}
+
+        {/* Call Section */}
         <div className="call-section">
           {/* Loader: Show when connecting and not isSpeaking */}
           {connecting && !isSpeaking && (
             <div className="connecting-loader">
               <div className="loader-spinner"></div>
-              <div className="loader-text">Connecting to the agent...</div>
+              <div className="loader-text">Connecting to {activeAgent} agent...</div>
             </div>
           )}
-          <div className="call-button-container">
+
+          {/* Two Call Buttons */}
+          <div style={callButtonsContainerStyle} className="agent-buttons-container">
             <button
-              onClick={connected || connecting ? disconnectFromRoom : handleStartCall}
-              className={`call-button ${connecting ? 'connecting' : ''} ${!connected && !connecting ? 'start-call' : 'end-call'}`}
-              disabled={callType === 'telephony' && !connected && !connecting && (!phoneNumber || !clientName)}
+              onClick={() => connected && activeAgent === 'inbound' ? disconnectFromRoom() : connectToRoom('inbound')}
+              disabled={connecting || (connected && activeAgent === 'outbound')}
+              style={connecting || (connected && activeAgent === 'outbound') ? disabledButtonStyle : inboundButtonStyle}
+              className="agent-button"
             >
-              <div className="call-icon">
-                {!connected ? (
-                  <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56-.35-.12-.74-.03-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"/>
-                  </svg>
-                ) : (
-                  <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM4 12c0-4.42 3.58-8 8-8 1.85 0 3.55.63 4.9 1.69L5.69 16.9C4.63 15.55 4 13.85 4 12zm8 8c-1.85 0-3.55-.63-4.9-1.69L18.31 7.1C19.37 8.45 20 10.15 20 12c0 4.42-3.58 8-8 8z"/>
-                  </svg>
-                )}
-              </div>
-              {connecting && <div className="loading-ring"></div>}
+              {connecting && activeAgent === 'inbound' && <div style={loadingSpinnerStyle}></div>}
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56-.35-.12-.74-.03-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"/>
+              </svg>
+              {connected && activeAgent === 'inbound' ? 'End Inbound Call' : 'Inbound Agent'}
+            </button>
+            
+            <button
+              onClick={() => connected && activeAgent === 'outbound' ? disconnectFromRoom() : connectToRoom('outbound')}
+              disabled={connecting || (connected && activeAgent === 'inbound')}
+              style={connecting || (connected && activeAgent === 'inbound') ? disabledButtonStyle : outboundButtonStyle}
+              className="agent-button"
+            >
+              {connecting && activeAgent === 'outbound' && <div style={loadingSpinnerStyle}></div>}
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56-.35-.12-.74-.03-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"/>
+              </svg>
+              {connected && activeAgent === 'outbound' ? 'End Outbound Call' : 'Outbound Agent'}
             </button>
           </div>
-          <div className="button-label">
-            {connecting ? 'END CALL' : (!connected ? 'START CALL' : 'END CALL')}
-          </div>
-          {callType === 'telephony' && telephonyStatus && (
-            <div style={{ color: telephonyStatus === 'Call Initiated' ? 'green' : 'red', marginTop: 8 }}>{telephonyStatus}</div>
+
+          {/* Connection Status */}
+          {connected && (
+            <div style={{ 
+              color: '#4CAF50', 
+              fontSize: '14px', 
+              textAlign: 'center',
+              marginBottom: '16px',
+              fontWeight: '500'
+            }}>
+              Connected to {activeAgent} agent
+            </div>
           )}
+
+          {/* Speaking Indicator */}
           {connected && isSpeaking && (
             <div className="speaking-indicator">
               <div className="pulse-dot"></div>
@@ -353,6 +397,7 @@ function App() {
             </div>
           )}
         </div>
+
         {/* Fixed height container to prevent layout shift */}
         <div className="chat-placeholder">
           {connected && (
@@ -372,6 +417,8 @@ function App() {
             </div>
           )}
         </div>
+
+        {/* Bot Container */}
         <div className="bot-container">
           <img src={maisyBot} alt="mAIsy Assistant" className="bot-image" />
         </div>
