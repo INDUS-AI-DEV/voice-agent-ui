@@ -15,6 +15,29 @@ const LANGUAGE_OPTIONS = [
   { value: 'Af', label: 'African' },
 ];
 
+// Scenario options for outbound calls
+const SCENARIO_OPTIONS = [
+  { value: 'kyc_followups', label: 'KYC Follow-ups' },
+  { value: 'engagement_awareness', label: 'Engagement & Awareness' },
+  { value: 'rewards_and_redemption', label: 'Rewards & Redemption Encouragement' },
+  { value: 'technical_assistance_and_pipe_configurator', label: 'Technical Assistance and Pipe Configurator' },
+  { value: 're_engage_the_inactive_plumbers', label: 'Re-engage Inactive Plumbers' },
+  { value: 'referral_and_network_building', label: 'Referral & Network Building' },
+  { value: 'feedback_and_satisfaction_checks', label: 'Feedback & Satisfaction Checks' },
+  { value: 'service_followup', label: 'Service Follow-up' },
+  { value: 'new_scheme_information', label: 'New Scheme Information' },
+];
+
+// Persona options for outbound calls
+const PERSONA_OPTIONS = [
+  { value: 'existing_plumber_doing_business', label: 'Existing Plumber - Doing Business' },
+  { value: 'existing_plumber_infrequent_business', label: 'Existing Plumber - Infrequent Business' },
+  { value: 'existing_plumber_quit_business', label: 'Existing Plumber - Quit Business' },
+  { value: 'existing_plumber_not_doing_business', label: 'Existing Plumber - Not Doing Business' },
+  { value: 'new_plumber', label: 'New Plumber' },
+  { value: 'retailer', label: 'Retailer' },
+];
+
 // OTP/MPIN Modal Component
 function MPINModal({ onAuthenticate }) {
   const [mpin, setMpin] = useState(['', '', '', '']);
@@ -95,6 +118,8 @@ function App() {
   const [authenticated, setAuthenticated] = useState(false);
   const [activeAgent, setActiveAgent] = useState(null); // 'inbound' or 'outbound'
   const [language, setLanguage] = useState('Hi'); // Default to Hindi
+  const [selectedScenario, setSelectedScenario] = useState(SCENARIO_OPTIONS[0].value);
+  const [selectedPersona, setSelectedPersona] = useState(PERSONA_OPTIONS[0].value);
 
   useEffect(() => {
     if (!room) return;
@@ -159,8 +184,15 @@ function App() {
       const userId = `user-${Math.random().toString(36).substring(2, 8)}`;
       const roomId = `room-${Math.random().toString(36).substring(2, 8)}`;
 
-      // Include language parameter in the URL
-      const fullUrl = `${server_url}/api/token/plumber?room=${roomId}&user=${userId}&agent_type=${agentType}&language=${language}`;
+      // Build URL parameters
+      let urlParams = `room=${roomId}&user=${userId}&agent_type=${agentType}&language=${language}`;
+      
+      // Add scenario and persona parameters for outbound calls
+      if (agentType === 'outbound') {
+        urlParams += `&scenario=${selectedScenario}&persona=${selectedPersona}`;
+      }
+
+      const fullUrl = `${server_url}/api/token/plumber?${urlParams}`;
       console.log("API URL:", fullUrl);
 
       // Fetch the token
@@ -276,6 +308,34 @@ function App() {
     animation: 'spin 1s linear infinite'
   };
 
+  const dropdownContainerStyle = {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '12px',
+    width: '100%',
+    maxWidth: '300px',
+    margin: '0 auto 20px',
+    padding: '0 20px'
+  };
+
+  const dropdownStyle = {
+    padding: '10px 12px',
+    borderRadius: '8px',
+    border: '2px solid #e0e0e0',
+    fontSize: '14px',
+    backgroundColor: 'white',
+    cursor: 'pointer',
+    transition: 'border-color 0.3s ease',
+    outline: 'none'
+  };
+
+  const dropdownLabelStyle = {
+    fontSize: '12px',
+    fontWeight: '600',
+    color: '#666',
+    marginBottom: '4px'
+  };
+
   return (
     <div className="app-container">
       <style>{`
@@ -289,6 +349,9 @@ function App() {
         }
         .agent-button:active {
           transform: translateY(0);
+        }
+        .dropdown:hover, .dropdown:focus {
+          border-color: #2196F3 !important;
         }
         @media (max-width: 700px) {
           .agent-buttons-container {
@@ -376,6 +439,155 @@ function App() {
             </button>
           </div>
 
+          {/* Outbound Call Configuration Dropdowns - Beautiful Design */}
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px',
+            width: '100%',
+            alignItems: 'center',
+            marginTop: '20px',
+            marginBottom: '20px'
+          }}>
+            {/* Scenario Dropdown */}
+            <div style={{
+              position: 'relative',
+              width: '200px',
+            }}>
+              <select
+                className="dropdown beautiful-dropdown"
+                value={selectedScenario}
+                onChange={e => setSelectedScenario(e.target.value)}
+                disabled={connected}
+                style={{
+                  width: '200px',
+                  padding: '12px 16px',
+                  paddingRight: '40px',
+                  borderRadius: '12px',
+                  border: 'none',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  backgroundColor: '#f8f9fa',
+                  color: '#333',
+                  cursor: connected ? 'not-allowed' : 'pointer',
+                  transition: 'all 0.3s ease',
+                  outline: 'none',
+                  appearance: 'none',
+                  WebkitAppearance: 'none',
+                  MozAppearance: 'none',
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                  background: connected 
+                    ? 'linear-gradient(135deg, #e0e0e0 0%, #f5f5f5 100%)'
+                    : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  color: connected ? '#999' : 'white',
+                  minHeight: '48px',
+                  display: 'flex',
+                  alignItems: 'center',
+                }}
+              >
+                {SCENARIO_OPTIONS.map(option => (
+                  <option key={option.value} value={option.value} style={{ color: '#333', backgroundColor: 'white' }}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+              <div style={{
+                position: 'absolute',
+                right: '12px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                pointerEvents: 'none',
+                color: connected ? '#999' : 'white'
+              }}>
+                <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M5 8l5 5 5-5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+              <div style={{
+                position: 'absolute',
+                top: '-8px',
+                left: '12px',
+                fontSize: '11px',
+                fontWeight: '600',
+                color: connected ? '#999' : '#667eea',
+                backgroundColor: 'white',
+                padding: '2px 8px',
+                borderRadius: '4px',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+              }}>
+                SCENARIO
+              </div>
+            </div>
+
+            {/* Persona Dropdown */}
+            <div style={{
+              position: 'relative',
+              width: '200px',
+            }}>
+              <select
+                className="dropdown beautiful-dropdown"
+                value={selectedPersona}
+                onChange={e => setSelectedPersona(e.target.value)}
+                disabled={connected}
+                style={{
+                  width: '200px',
+                  padding: '12px 16px',
+                  paddingRight: '40px',
+                  borderRadius: '12px',
+                  border: 'none',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  cursor: connected ? 'not-allowed' : 'pointer',
+                  transition: 'all 0.3s ease',
+                  outline: 'none',
+                  appearance: 'none',
+                  WebkitAppearance: 'none',
+                  MozAppearance: 'none',
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                  background: connected 
+                    ? 'linear-gradient(135deg, #e0e0e0 0%, #f5f5f5 100%)'
+                    : 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+                  color: connected ? '#999' : 'white',
+                  minHeight: '48px',
+                  display: 'flex',
+                  alignItems: 'center',
+                }}
+              >
+                {PERSONA_OPTIONS.map(option => (
+                  <option key={option.value} value={option.value} style={{ color: '#333', backgroundColor: 'white' }}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+              <div style={{
+                position: 'absolute',
+                right: '12px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                pointerEvents: 'none',
+                color: connected ? '#999' : 'white'
+              }}>
+                <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M5 8l5 5 5-5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+              <div style={{
+                position: 'absolute',
+                top: '-8px',
+                left: '12px',
+                fontSize: '11px',
+                fontWeight: '600',
+                color: connected ? '#999' : '#f093fb',
+                backgroundColor: 'white',
+                padding: '2px 8px',
+                borderRadius: '4px',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+              }}>
+                PERSONA
+              </div>
+            </div>
+          </div>
+
           {/* Connection Status */}
           {connected && (
             <div style={{ 
@@ -386,6 +598,12 @@ function App() {
               fontWeight: '500'
             }}>
               Connected to {activeAgent} agent
+              {activeAgent === 'outbound' && (
+                <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
+                  Scenario: {SCENARIO_OPTIONS.find(s => s.value === selectedScenario)?.label} | 
+                  Persona: {PERSONA_OPTIONS.find(p => p.value === selectedPersona)?.label}
+                </div>
+              )}
             </div>
           )}
 

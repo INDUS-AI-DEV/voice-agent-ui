@@ -1,5 +1,44 @@
 /* ShopAnalyzer.css */
 
+.main-title-container {
+  position: relative;
+  padding: 20px 20px 20px 80px; /* Extra padding-left for logo space */
+  border: 2px solid #555;
+  border-radius: 10px;
+  margin-bottom: 30px;
+  background: linear-gradient(135deg, #1a1a20 0%, #2a2a35 100%);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  text-align: center;
+}
+
+.logo-image {
+  position: absolute;
+  top: 50%;
+  left: 20px;
+  transform: translateY(-50%);
+  height: 60px; /* Adjust size as needed */
+  width: auto;
+}
+
+.title-text h1 {
+  margin: 0;
+  padding: 0;
+  font-size: 2.2rem;
+  font-weight: 700;
+  background: linear-gradient(45deg, #4facfe, #00f2fe);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.title-text p {
+  margin-top: 8px;
+  color: #bbb;
+  font-size: 1.05rem;
+}
+
+
+
 .shop-analyzer-container {
     min-height: 100vh;
     background: linear-gradient(135deg, #1a1a20 0%, #262630 100%);

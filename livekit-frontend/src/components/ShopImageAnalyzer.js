@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { Camera, Upload, Loader2, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import './ShopAnalyzer.css';
+import logo from '../assets/logo.png';
 
 const ShopImageAnalyzer = () => {
   const [imageData, setImageData] = useState(null);
@@ -120,8 +121,11 @@ const ShopImageAnalyzer = () => {
   return (
     <div className="shop-analyzer-container">
       <div className="main-title-container">
-        <h1>🛍️ Shop Image Analyzer</h1>
-        <p>Upload an image or use your camera to identify if it's a shop, extract its name, and business type.</p>
+        <img src={logo} alt="Massist Logo" className="logo-image" />
+        <div className="title-text">
+          <h1>Massist Shop Image Analyzer</h1>
+          <p>Upload an image or use your camera to identify if it's a shop, extract its name, and business type.</p>
+        </div>
       </div>
 
       <div className="analyzer-layout">
@@ -314,10 +318,7 @@ const ShopImageAnalyzer = () => {
         </div>
       </div>
 
-      <footer className="app-footer">
-        <hr />
-        <p>Developed with React and AI Vision</p>
-      </footer>
+      
     </div>
   );
 };
