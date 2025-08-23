@@ -109,6 +109,32 @@ function MPINModal({ onAuthenticate }) {
   );
 }
 
+// Tab Component
+function TabButton({ active, children, onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        flex: 1,
+        padding: '12px 16px',
+        border: 'none',
+        background: active ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : 'rgba(255, 255, 255, 0.1)',
+        color: active ? 'white' : '#b0bec5',
+        fontSize: '16px',
+        fontWeight: '600',
+        cursor: 'pointer',
+        transition: 'all 0.3s ease',
+        borderRadius: active ? '12px 12px 0 0' : '12px 12px 0 0',
+        borderBottom: active ? '3px solid #667eea' : 'none',
+        backdropFilter: 'blur(10px)',
+        WebkitBackdropFilter: 'blur(10px)',
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
 function App() {
   const [room, setRoom] = useState(null);
   const [connected, setConnected] = useState(false);
@@ -116,6 +142,7 @@ function App() {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [chatMessages, setChatMessages] = useState([]);
   const [authenticated, setAuthenticated] = useState(false);
+  const [activeTab, setActiveTab] = useState('inbound'); // 'inbound' or 'outbound'
   const [activeAgent, setActiveAgent] = useState(null); // 'inbound' or 'outbound'
   const [language, setLanguage] = useState('Hi'); // Default to Hindi
   const [selectedScenario, setSelectedScenario] = useState(SCENARIO_OPTIONS[0].value);
@@ -248,20 +275,11 @@ function App() {
     }
   };
 
-  // Inline styles for the two call buttons
-  const callButtonsContainerStyle = {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '16px',
-    width: '100%',
-    alignItems: 'center',
-    marginBottom: '20px'
-  };
-
-  const agentButtonStyle = {
+  // Call button styles
+  const callButtonStyle = {
     width: '200px',
-    padding: '12px 16px',
-    borderRadius: '12px',
+    padding: '8px 20px',
+    borderRadius: '16px',
     border: 'none',
     fontSize: '16px',
     fontWeight: '600',
@@ -270,21 +288,22 @@ function App() {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: '8px',
-    minHeight: '48px',
-    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)'
+    gap: '12px',
+    minHeight: '36px',
+    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.2)',
+    margin: '20px 0'
   };
 
-  const inboundButtonStyle = {
-    ...agentButtonStyle,
+  const inboundCallButtonStyle = {
+    ...callButtonStyle,
     background: connected && activeAgent === 'inbound' 
       ? 'linear-gradient(135deg, #f44336 0%, #d32f2f 100%)' 
       : 'linear-gradient(135deg, #4CAF50 0%, #45a049 100%)',
     color: 'white'
   };
 
-  const outboundButtonStyle = {
-    ...agentButtonStyle,
+  const outboundCallButtonStyle = {
+    ...callButtonStyle,
     background: connected && activeAgent === 'outbound' 
       ? 'linear-gradient(135deg, #f44336 0%, #d32f2f 100%)' 
       : 'linear-gradient(135deg, #2196F3 0%, #1976D2 100%)',
@@ -292,7 +311,7 @@ function App() {
   };
 
   const disabledButtonStyle = {
-    ...agentButtonStyle,
+    ...callButtonStyle,
     background: 'linear-gradient(135deg, #6c757d 0%, #5a6268 100%)',
     color: 'white',
     cursor: 'not-allowed',
@@ -300,40 +319,54 @@ function App() {
   };
 
   const loadingSpinnerStyle = {
-    width: '16px',
-    height: '16px',
+    width: '20px',
+    height: '20px',
     border: '2px solid rgba(255,255,255,0.3)',
     borderTop: '2px solid white',
     borderRadius: '50%',
     animation: 'spin 1s linear infinite'
   };
 
+  // Dropdown styles
   const dropdownContainerStyle = {
     display: 'flex',
     flexDirection: 'column',
-    gap: '12px',
+    gap: '16px',
     width: '100%',
-    maxWidth: '300px',
+    maxWidth: '280px',
     margin: '0 auto 20px',
     padding: '0 20px'
   };
 
   const dropdownStyle = {
-    padding: '10px 12px',
-    borderRadius: '8px',
-    border: '2px solid #e0e0e0',
+    width: '100%',
+    padding: '12px 16px',
+    paddingRight: '40px',
+    borderRadius: '12px',
+    border: 'none',
     fontSize: '14px',
-    backgroundColor: 'white',
+    fontWeight: '600',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    color: 'white',
     cursor: 'pointer',
-    transition: 'border-color 0.3s ease',
-    outline: 'none'
+    transition: 'all 0.3s ease',
+    outline: 'none',
+    appearance: 'none',
+    WebkitAppearance: 'none',
+    MozAppearance: 'none',
+    backdropFilter: 'blur(10px)',
+    WebkitBackdropFilter: 'blur(10px)',
+    border: '1px solid rgba(255, 255, 255, 0.2)',
+    minHeight: '48px'
   };
 
   const dropdownLabelStyle = {
     fontSize: '12px',
     fontWeight: '600',
-    color: '#666',
-    marginBottom: '4px'
+    color: '#b0bec5',
+    marginBottom: '6px',
+    textTransform: 'uppercase',
+    letterSpacing: '0.5px'
   };
 
   return (
@@ -343,25 +376,135 @@ function App() {
           0% { transform: rotate(0deg); }
           100% { transform: rotate(360deg); }
         }
-        .agent-button:hover {
-          transform: translateY(-1px);
-          box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+        .call-button:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
         }
-        .agent-button:active {
+        .call-button:active {
           transform: translateY(0);
         }
         .dropdown:hover, .dropdown:focus {
-          border-color: #2196F3 !important;
+          border-color: #667eea !important;
+          background: rgba(255, 255, 255, 0.15) !important;
+        }
+        .tab-content {
+          animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .header-container {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          width: 100%;
+          padding: 0 20px;
+          margin-bottom: 20px;
+          position: relative;
+          z-index: 10;
+        }
+        .logo-section {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+        .logo-section img {
+          width: 100px;
+          height: auto;
+        }
+        .language-section {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          position: relative;
+          z-index: 1000;
+        }
+        .language-dropdown {
+          background: rgba(255, 255, 255, 0.1);
+          color: var(--text-white);
+          font-weight: 600;
+          font-size: 14px;
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          outline: none;
+          cursor: pointer;
+          padding: 8px 12px;
+          border-radius: 8px;
+          appearance: none;
+          -webkit-appearance: none;
+          -moz-appearance: none;
+          transition: background 0.2s;
+          letter-spacing: 0.2px;
+          min-width: 80px;
+          z-index: 1001;
+          position: relative;
+          padding-right: 30px;
+        }
+        .language-dropdown:hover {
+          background: rgba(255, 255, 255, 0.15);
+          border-color: rgba(255, 255, 255, 0.3);
+        }
+        .language-dropdown:focus {
+          background: rgba(255, 255, 255, 0.2);
+          border-color: rgba(255, 255, 255, 0.4);
+        }
+        .language-dropdown option {
+          color: #000000;
+          font-weight: 500;
+          background: #ffffff;
+          font-size: 14px;
+        }
+        /* Inbound tab specific logo styling */
+        .inbound-logo-container {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 8px;
+          margin-bottom: 20px;
+        }
+        .inbound-logo-container img {
+          width: 300px;
+          height: auto;
+          filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+        }
+        .inbound-logo-container .logo-subtitle {
+          font-size: 18px;
+          color: var(--text-gray);
+          letter-spacing: 1px;
+          font-weight: bold;
+          text-align: center;
         }
         @media (max-width: 700px) {
-          .agent-buttons-container {
-            gap: 12px !important;
+          .header-container {
+            padding: 0 16px;
+            margin-bottom: 16px;
           }
-          .agent-button {
+          .logo-section img {
+            width: 60px;
+          }
+          .logo-section .logo-subtitle {
+            font-size: 14px;
+          }
+          .language-dropdown {
+            font-size: 13px;
+            padding: 6px 8px;
+            min-width: 70px;
+          }
+          .inbound-logo-container img {
+            width: 80px;
+          }
+          .inbound-logo-container .logo-subtitle {
+            font-size: 16px;
+          }
+          .call-button {
             width: 180px !important;
             font-size: 14px !important;
-            padding: 10px 12px !important;
-            min-height: 40px !important;
+            padding: 14px 16px !important;
+            min-height: 48px !important;
+          }
+          .dropdown-container {
+            max-width: 260px !important;
+            padding: 0 16px !important;
           }
         }
       `}</style>
@@ -373,245 +516,270 @@ function App() {
         pointerEvents: !authenticated ? 'none' : 'auto'
       }}>
         
-        {/* Language Dropdown - positioned in top right */}
-        <div className="language-dropdown-container">
-          <select
-            className="language-dropdown"
-            value={language}
-            onChange={e => setLanguage(e.target.value)}
-            aria-label="Select Language"
-          >
-            {LANGUAGE_OPTIONS.map(opt => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-          <span className="language-dropdown-arrow">
-            <svg width="16" height="16" viewBox="0 0 20 20" fill="none" style={{ verticalAlign: 'middle' }}>
-              <path d="M5 8l5 5 5-5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        {/* Header with Logo and Language Dropdown */}
+        <div className="header-container">
+          <div className="logo-section">
+            <img src={maisyLogo} alt="mAIsy Logo" />
+          </div>
+          
+          <div className="language-section">
+            <select
+              className="language-dropdown"
+              value={language}
+              onChange={e => setLanguage(e.target.value)}
+              aria-label="Select Language"
+            >
+              {LANGUAGE_OPTIONS.map(opt => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+            <svg 
+              width="14" 
+              height="14" 
+              viewBox="0 0 20 20" 
+              fill="none" 
+              style={{ 
+                color: 'var(--text-white)', 
+                position: 'absolute',
+                right: '8px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                pointerEvents: 'none',
+                zIndex: 1002
+              }}
+            >
+              <path d="M5 8l5 5 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
-          </span>
-        </div>
-        
-        {/* Logo Section */}
-        <div className="logo-container">
-          <img src={maisyLogo} alt="mAIsy Logo" className="logo" />
-          <div className="logo-subtitle">AI Call System</div>
-        </div>
-
-        {/* Call Section */}
-        <div className="call-section">
-          {/* Loader: Show when connecting and not isSpeaking */}
-          {connecting && !isSpeaking && (
-            <div className="connecting-loader">
-              <div className="loader-spinner"></div>
-              <div className="loader-text">Connecting to {activeAgent} agent...</div>
-            </div>
-          )}
-
-          {/* Two Call Buttons */}
-          <div style={callButtonsContainerStyle} className="agent-buttons-container">
-            <button
-              onClick={() => connected && activeAgent === 'inbound' ? disconnectFromRoom() : connectToRoom('inbound')}
-              disabled={connecting || (connected && activeAgent === 'outbound')}
-              style={connecting || (connected && activeAgent === 'outbound') ? disabledButtonStyle : inboundButtonStyle}
-              className="agent-button"
-            >
-              {connecting && activeAgent === 'inbound' && <div style={loadingSpinnerStyle}></div>}
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56-.35-.12-.74-.03-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"/>
-              </svg>
-              {connected && activeAgent === 'inbound' ? 'End Inbound Call' : 'Inbound Agent'}
-            </button>
-            
-            <button
-              onClick={() => connected && activeAgent === 'outbound' ? disconnectFromRoom() : connectToRoom('outbound')}
-              disabled={connecting || (connected && activeAgent === 'inbound')}
-              style={connecting || (connected && activeAgent === 'inbound') ? disabledButtonStyle : outboundButtonStyle}
-              className="agent-button"
-            >
-              {connecting && activeAgent === 'outbound' && <div style={loadingSpinnerStyle}></div>}
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56-.35-.12-.74-.03-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"/>
-              </svg>
-              {connected && activeAgent === 'outbound' ? 'End Outbound Call' : 'Outbound Agent'}
-            </button>
           </div>
+        </div>
 
-          {/* Outbound Call Configuration Dropdowns - Beautiful Design */}
+        {/* AI Call System Text */}
+        <div style={{
+          textAlign: 'center',
+          marginBottom: '20px',
+          padding: '0 20px'
+        }}>
           <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '16px',
-            width: '100%',
-            alignItems: 'center',
-            marginTop: '20px',
-            marginBottom: '20px'
+            fontSize: '18px',
+            color: 'var(--text-gray)',
+            letterSpacing: '1px',
+            fontWeight: 'bold',
+            textAlign: 'center'
           }}>
-            {/* Scenario Dropdown */}
-            <div style={{
-              position: 'relative',
-              width: '200px',
-            }}>
-              <select
-                className="dropdown beautiful-dropdown"
-                value={selectedScenario}
-                onChange={e => setSelectedScenario(e.target.value)}
-                disabled={connected}
-                style={{
-                  width: '200px',
-                  padding: '12px 16px',
-                  paddingRight: '40px',
-                  borderRadius: '12px',
-                  border: 'none',
-                  fontSize: '14px',
-                  fontWeight: '600',
-                  backgroundColor: '#f8f9fa',
-                  color: '#333',
-                  cursor: connected ? 'not-allowed' : 'pointer',
-                  transition: 'all 0.3s ease',
-                  outline: 'none',
-                  appearance: 'none',
-                  WebkitAppearance: 'none',
-                  MozAppearance: 'none',
-                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-                  background: connected 
-                    ? 'linear-gradient(135deg, #e0e0e0 0%, #f5f5f5 100%)'
-                    : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                  color: connected ? '#999' : 'white',
-                  minHeight: '48px',
-                  display: 'flex',
-                  alignItems: 'center',
-                }}
-              >
-                {SCENARIO_OPTIONS.map(option => (
-                  <option key={option.value} value={option.value} style={{ color: '#333', backgroundColor: 'white' }}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-              <div style={{
-                position: 'absolute',
-                right: '12px',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                pointerEvents: 'none',
-                color: connected ? '#999' : 'white'
-              }}>
-                <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
-                  <path d="M5 8l5 5 5-5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </div>
-              <div style={{
-                position: 'absolute',
-                top: '-8px',
-                left: '12px',
-                fontSize: '11px',
-                fontWeight: '600',
-                color: connected ? '#999' : '#667eea',
-                backgroundColor: 'white',
-                padding: '2px 8px',
-                borderRadius: '4px',
-                boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-              }}>
-                SCENARIO
-              </div>
-            </div>
-
-            {/* Persona Dropdown */}
-            <div style={{
-              position: 'relative',
-              width: '200px',
-            }}>
-              <select
-                className="dropdown beautiful-dropdown"
-                value={selectedPersona}
-                onChange={e => setSelectedPersona(e.target.value)}
-                disabled={connected}
-                style={{
-                  width: '200px',
-                  padding: '12px 16px',
-                  paddingRight: '40px',
-                  borderRadius: '12px',
-                  border: 'none',
-                  fontSize: '14px',
-                  fontWeight: '600',
-                  cursor: connected ? 'not-allowed' : 'pointer',
-                  transition: 'all 0.3s ease',
-                  outline: 'none',
-                  appearance: 'none',
-                  WebkitAppearance: 'none',
-                  MozAppearance: 'none',
-                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-                  background: connected 
-                    ? 'linear-gradient(135deg, #e0e0e0 0%, #f5f5f5 100%)'
-                    : 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-                  color: connected ? '#999' : 'white',
-                  minHeight: '48px',
-                  display: 'flex',
-                  alignItems: 'center',
-                }}
-              >
-                {PERSONA_OPTIONS.map(option => (
-                  <option key={option.value} value={option.value} style={{ color: '#333', backgroundColor: 'white' }}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-              <div style={{
-                position: 'absolute',
-                right: '12px',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                pointerEvents: 'none',
-                color: connected ? '#999' : 'white'
-              }}>
-                <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
-                  <path d="M5 8l5 5 5-5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </div>
-              <div style={{
-                position: 'absolute',
-                top: '-8px',
-                left: '12px',
-                fontSize: '11px',
-                fontWeight: '600',
-                color: connected ? '#999' : '#f093fb',
-                backgroundColor: 'white',
-                padding: '2px 8px',
-                borderRadius: '4px',
-                boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-              }}>
-                PERSONA
-              </div>
-            </div>
+            AI Call System
           </div>
+        </div>
 
-          {/* Connection Status */}
-          {connected && (
-            <div style={{ 
-              color: '#4CAF50', 
-              fontSize: '14px', 
-              textAlign: 'center',
-              marginBottom: '16px',
-              fontWeight: '500'
+        {/* Tab Navigation */}
+        <div style={{
+          display: 'flex',
+          width: '100%',
+          marginBottom: '20px',
+          gap: '4px',
+          padding: '0 20px'
+        }}>
+          <TabButton 
+            active={activeTab === 'inbound'} 
+            onClick={() => setActiveTab('inbound')}
+          >
+            Inbound Agent
+          </TabButton>
+          <TabButton 
+            active={activeTab === 'outbound'} 
+            onClick={() => setActiveTab('outbound')}
+          >
+            Outbound Agent
+          </TabButton>
+        </div>
+
+        {/* Tab Content */}
+        <div className="tab-content" style={{ width: '100%', flex: 1 }}>
+          {/* Inbound Tab */}
+          {activeTab === 'inbound' && (
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              height: '100%',
+              padding: '20px'
             }}>
-              Connected to {activeAgent} agent
-              {activeAgent === 'outbound' && (
-                <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
-                  Scenario: {SCENARIO_OPTIONS.find(s => s.value === selectedScenario)?.label} | 
-                  Persona: {PERSONA_OPTIONS.find(p => p.value === selectedPersona)?.label}
+              {/* Loader: Show when connecting to inbound */}
+              {connecting && activeAgent === 'inbound' && !isSpeaking && (
+                <div className="connecting-loader">
+                  <div className="loader-spinner"></div>
+                  <div className="loader-text">Connecting to inbound agent...</div>
+                </div>
+              )}
+
+              {/* Inbound Call Button - Fixed for single line text */}
+              <button
+                onClick={() => connected && activeAgent === 'inbound' ? disconnectFromRoom() : connectToRoom('inbound')}
+                disabled={connecting || (connected && activeAgent === 'outbound')}
+                style={{
+                  ...(connecting || (connected && activeAgent === 'outbound') ? disabledButtonStyle : inboundCallButtonStyle),
+                  whiteSpace: 'nowrap',
+                  fontSize: '15px',
+                  padding: '8px 24px',
+                  minWidth: '220px'
+                }}
+                className="call-button"
+              >
+                {connecting && activeAgent === 'inbound' && <div style={loadingSpinnerStyle}></div>}
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56-.35-.12-.74-.03-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"/>
+                </svg>
+                {connected && activeAgent === 'inbound' ? 'End Inbound Call' : 'Start Inbound Call'}
+              </button>
+
+              {/* Connection Status for Inbound */}
+              {connected && activeAgent === 'inbound' && (
+                <div style={{ 
+                  color: '#4CAF50', 
+                  fontSize: '14px', 
+                  textAlign: 'center',
+                  marginTop: '16px',
+                  fontWeight: '500'
+                }}>
+                  Connected to inbound agent
+                </div>
+              )}
+
+              {/* Speaking Indicator for Inbound */}
+              {connected && activeAgent === 'inbound' && isSpeaking && (
+                <div className="speaking-indicator">
+                  <div className="pulse-dot"></div>
+                  Agent is speaking...
                 </div>
               )}
             </div>
           )}
 
-          {/* Speaking Indicator */}
-          {connected && isSpeaking && (
-            <div className="speaking-indicator">
-              <div className="pulse-dot"></div>
-              Agent is speaking...
+          {/* Outbound Tab */}
+          {activeTab === 'outbound' && (
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              height: '100%',
+              padding: '20px'
+            }}>
+              {/* Loader: Show when connecting to outbound */}
+              {connecting && activeAgent === 'outbound' && !isSpeaking && (
+                <div className="connecting-loader">
+                  <div className="loader-spinner"></div>
+                  <div className="loader-text">Connecting to outbound agent...</div>
+                </div>
+              )}
+
+              {/* Outbound Configuration Dropdowns */}
+              <div style={dropdownContainerStyle} className="dropdown-container">
+                {/* Scenario Dropdown */}
+                <div style={{ position: 'relative' }}>
+                  <div style={dropdownLabelStyle}>Scenario</div>
+                  <select
+                    style={dropdownStyle}
+                    value={selectedScenario}
+                    onChange={e => setSelectedScenario(e.target.value)}
+                    disabled={connected}
+                  >
+                    {SCENARIO_OPTIONS.map(option => (
+                      <option key={option.value} value={option.value} style={{ color: '#333', backgroundColor: 'white' }}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                  <div style={{
+                    position: 'absolute',
+                    right: '12px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    pointerEvents: 'none',
+                    color: 'white'
+                  }}>
+                    <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M5 8l5 5 5-5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
+                </div>
+
+                {/* Persona Dropdown */}
+                <div style={{ position: 'relative' }}>
+                  <div style={dropdownLabelStyle}>Persona</div>
+                  <select
+                    style={dropdownStyle}
+                    value={selectedPersona}
+                    onChange={e => setSelectedPersona(e.target.value)}
+                    disabled={connected}
+                  >
+                    {PERSONA_OPTIONS.map(option => (
+                      <option key={option.value} value={option.value} style={{ color: '#333', backgroundColor: 'white' }}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                  <div style={{
+                    position: 'absolute',
+                    right: '12px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    pointerEvents: 'none',
+                    color: 'white'
+                  }}>
+                    <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M5 8l5 5 5-5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              {/* Outbound Call Button - Improved for single line text */}
+              <button
+                onClick={() => connected && activeAgent === 'outbound' ? disconnectFromRoom() : connectToRoom('outbound')}
+                disabled={connecting || (connected && activeAgent === 'inbound')}
+                style={{
+                  ...(connecting || (connected && activeAgent === 'inbound') ? disabledButtonStyle : outboundCallButtonStyle),
+                  whiteSpace: 'nowrap',
+                  fontSize: '15px',
+                  padding: '8px 24px',
+                  minWidth: '220px'
+                }}
+                className="call-button"
+              >
+                {connecting && activeAgent === 'outbound' && <div style={loadingSpinnerStyle}></div>}
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56-.35-.12-.74-.03-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"/>
+                </svg>
+                {connected && activeAgent === 'outbound' ? 'End Outbound Call' : 'Start Outbound Call'}
+              </button>
+
+              {/* Connection Status for Outbound */}
+              {connected && activeAgent === 'outbound' && (
+                <div style={{ 
+                  color: '#4CAF50', 
+                  fontSize: '14px', 
+                  textAlign: 'center',
+                  marginTop: '16px',
+                  fontWeight: '500'
+                }}>
+                  Connected to outbound agent
+                  <div style={{ fontSize: '12px', color: '#b0bec5', marginTop: '4px' }}>
+                    Scenario: {SCENARIO_OPTIONS.find(s => s.value === selectedScenario)?.label} | 
+                    Persona: {PERSONA_OPTIONS.find(p => p.value === selectedPersona)?.label}
+                  </div>
+                </div>
+              )}
+
+              {/* Speaking Indicator for Outbound */}
+              {connected && activeAgent === 'outbound' && isSpeaking && (
+                <div className="speaking-indicator">
+                  <div className="pulse-dot"></div>
+                  Agent is speaking...
+                </div>
+              )}
             </div>
           )}
         </div>
