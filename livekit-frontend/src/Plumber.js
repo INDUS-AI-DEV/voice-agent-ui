@@ -15,27 +15,27 @@ const LANGUAGE_OPTIONS = [
   { value: 'Af', label: 'African' },
 ];
 
-// Scenario options for outbound calls
-const SCENARIO_OPTIONS = [
-  { value: 'kyc_followups', label: 'KYC Follow-ups' },
-  { value: 'engagement_awareness', label: 'Engagement & Awareness' },
-  { value: 'rewards_and_redemption', label: 'Rewards & Redemption Encouragement' },
-  { value: 'technical_assistance_and_pipe_configurator', label: 'Technical Assistance and Pipe Configurator' },
-  { value: 're_engage_the_inactive_plumbers', label: 'Re-engage Inactive Plumbers' },
-  { value: 'referral_and_network_building', label: 'Referral & Network Building' },
-  { value: 'feedback_and_satisfaction_checks', label: 'Feedback & Satisfaction Checks' },
-  { value: 'service_followup', label: 'Service Follow-up' },
-  { value: 'new_scheme_information', label: 'New Scheme Information' },
-];
-
 // Persona options for outbound calls
 const PERSONA_OPTIONS = [
-  { value: 'existing_plumber_doing_business', label: 'Existing Plumber - Doing Business' },
-  { value: 'existing_plumber_infrequent_business', label: 'Existing Plumber - Infrequent Business' },
-  { value: 'existing_plumber_quit_business', label: 'Existing Plumber - Quit Business' },
-  { value: 'existing_plumber_not_doing_business', label: 'Existing Plumber - Not Doing Business' },
-  { value: 'new_plumber', label: 'New Plumber' },
-  { value: 'retailer', label: 'Retailer' },
+  { id: 1, value: 'existing_plumber_doing_business', label: 'Existing Plumber - Doing Business' },
+  { id: 2, value: 'existing_plumber_infrequent_business', label: 'Existing Plumber - Infrequent Business' },
+  { id: 3, value: 'existing_plumber_quit_business', label: 'Existing Plumber - Quit Business' },
+  { id: 4, value: 'existing_plumber_not_doing_business', label: 'Existing Plumber - Not Doing Business' },
+  { id: 5, value: 'new_plumber', label: 'New Plumber' },
+  { id: 6, value: 'retailer', label: 'Retailer' },
+];
+
+// Scenario options for outbound calls
+const SCENARIO_OPTIONS = [
+  { value: 'engagement_awareness', label: 'Engagement & Awareness', persona: [1, 2, 3, 4, 5, 6] },
+  { value: 'kyc_followups', label: 'KYC Follow-ups', persona: [2, 3, 4, 5, 6] },
+  { value: 'rewards_and_redemption', label: 'Rewards & Redemption Encouragement', persona: [1, 2, 3, 4] },
+  { value: 'referral_and_network_building', label: 'Referral & Network Building', persona: [1, 2, 3, 5, 6] },
+  { value: 'feedback_and_satisfaction_checks', label: 'Feedback & Satisfaction Checks', persona: [1, 2, 3, 4, 6] },
+  { value: 'service_followup', label: 'KYC Registration after plumber meet, plumber meet feedback', persona: [1, 2, 3, 4, 5] },
+  { value: 'new_scheme_information', label: 'Point validity queries', persona: [1, 2, 3, 4, 5] },
+  { value: 're_engage_the_inactive_plumbers', label: 'Re-engage Inactive Plumbers', persona: [2, 3, 4, 6] },
+  { value: 'technical_assistance_and_pipe_configurator', label: 'Technical Assistance and Pipe Configurator', persona: [1, 6] },
 ];
 
 // OTP/MPIN Modal Component
@@ -146,7 +146,31 @@ function App() {
   const [activeAgent, setActiveAgent] = useState(null); // 'inbound' or 'outbound'
   const [language, setLanguage] = useState('Hi'); // Default to Hindi
   const [selectedScenario, setSelectedScenario] = useState(SCENARIO_OPTIONS[0].value);
-  const [selectedPersona, setSelectedPersona] = useState(PERSONA_OPTIONS[0].value);
+  const [selectedPersona, setSelectedPersona] = useState(PERSONA_OPTIONS[0]);
+  const [userName, setUserName] = useState('');
+
+  // Get available scenarios for the selected persona
+  const getAvailableScenarios = () => {
+    return SCENARIO_OPTIONS.filter(scenario => 
+      scenario.persona.includes(selectedPersona.id)
+    );
+  };
+
+  // Handle persona change and update scenario if needed
+  const handlePersonaChange = (personaValue) => {
+    const newPersona = PERSONA_OPTIONS.find(p => p.value === personaValue);
+    setSelectedPersona(newPersona);
+    
+    // Check if current scenario is valid for new persona
+    const availableScenarios = SCENARIO_OPTIONS.filter(scenario => 
+      scenario.persona.includes(newPersona.id)
+    );
+    
+    // If current scenario is not available for new persona, select the first available one
+    if (!availableScenarios.some(scenario => scenario.value === selectedScenario)) {
+      setSelectedScenario(availableScenarios[0]?.value || SCENARIO_OPTIONS[0].value);
+    }
+  };
 
   useEffect(() => {
     if (!room) return;
@@ -216,7 +240,7 @@ function App() {
       
       // Add scenario and persona parameters for outbound calls
       if (agentType === 'outbound') {
-        urlParams += `&scenario=${selectedScenario}&persona=${selectedPersona}`;
+        urlParams += `&scenario=${selectedScenario}&persona=${selectedPersona.value}&user=${encodeURIComponent(userName)}`;
       }
 
       const fullUrl = `${server_url}/api/token/plumber?${urlParams}`;
@@ -677,17 +701,34 @@ function App() {
 
               {/* Outbound Configuration Dropdowns */}
               <div style={dropdownContainerStyle} className="dropdown-container">
-                {/* Scenario Dropdown */}
+                {/* User Name Input */}
                 <div style={{ position: 'relative' }}>
-                  <div style={dropdownLabelStyle}>Scenario</div>
+                  {/* <div style={dropdownLabelStyle}>User Name</div> */}
+                  <input
+                    type="text"
+                    placeholder="Enter name..."
+                    value={userName}
+                    onChange={e => setUserName(e.target.value)}
+                    disabled={connected}
+                    className="user-name-input"
+                    style={{
+                      ...dropdownStyle,
+                      paddingRight: '16px', // Remove extra right padding since no dropdown arrow
+                    }}
+                  />
+                </div>
+
+                {/* Persona Dropdown */}
+                <div style={{ position: 'relative' }}>
+                  <div style={dropdownLabelStyle}>Persona</div>
                   <select
                     style={dropdownStyle}
-                    value={selectedScenario}
-                    onChange={e => setSelectedScenario(e.target.value)}
+                    value={selectedPersona.value}
+                    onChange={e => handlePersonaChange(e.target.value)}
                     disabled={connected}
                   >
-                    {SCENARIO_OPTIONS.map(option => (
-                      <option key={option.value} value={option.value} style={{ color: '#333', backgroundColor: 'white' }}>
+                    {PERSONA_OPTIONS.map(option => (
+                      <option key={option.id} value={option.value} style={{ color: '#333', backgroundColor: 'white' }}>
                         {option.label}
                       </option>
                     ))}
@@ -706,16 +747,16 @@ function App() {
                   </div>
                 </div>
 
-                {/* Persona Dropdown */}
+                {/* Scenario Dropdown */}
                 <div style={{ position: 'relative' }}>
-                  <div style={dropdownLabelStyle}>Persona</div>
+                  <div style={dropdownLabelStyle}>Scenario</div>
                   <select
                     style={dropdownStyle}
-                    value={selectedPersona}
-                    onChange={e => setSelectedPersona(e.target.value)}
+                    value={selectedScenario}
+                    onChange={e => setSelectedScenario(e.target.value)}
                     disabled={connected}
                   >
-                    {PERSONA_OPTIONS.map(option => (
+                    {getAvailableScenarios().map(option => (
                       <option key={option.value} value={option.value} style={{ color: '#333', backgroundColor: 'white' }}>
                         {option.label}
                       </option>
@@ -767,8 +808,8 @@ function App() {
                 }}>
                   Connected to outbound agent
                   <div style={{ fontSize: '12px', color: '#b0bec5', marginTop: '4px' }}>
-                    Scenario: {SCENARIO_OPTIONS.find(s => s.value === selectedScenario)?.label} | 
-                    Persona: {PERSONA_OPTIONS.find(p => p.value === selectedPersona)?.label}
+                    User: {userName || 'Not specified'} | Scenario: {SCENARIO_OPTIONS.find(s => s.value === selectedScenario)?.label} | 
+                    Persona: {PERSONA_OPTIONS.find(p => p.value === selectedPersona.value)?.label}
                   </div>
                 </div>
               )}
