@@ -13,6 +13,7 @@ import ObjectionHandlingBackup from './ObjectionHandlingBackup'
 import ShopImageAnalyzer from './components/ShopImageAnalyzer';
 import Plumber from './Plumber';
 import ShadeformDashboard from './ShadeformDashboard';
+import Banking from './Dashboard';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
@@ -28,6 +29,7 @@ root.render(
         <Route path="/plumber" element={<Plumber />} />
         <Route path="/tts-server" element={<ShadeformDashboard />} />
         <Route path="/tts-sales-agent" element={<AppTTS />} />
+        <Route path="/dashboard" element={<Banking />} />
         <Route path="/*" element={<App />} />
       </Routes>
     </BrowserRouter>
