@@ -14,6 +14,7 @@ import ShopImageAnalyzer from './components/ShopImageAnalyzer';
 import Plumber from './Plumber';
 import ShadeformDashboard from './ShadeformDashboard';
 import Banking from './Dashboard';
+import Excide_App from './excide';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
@@ -27,6 +28,7 @@ root.render(
 	      <Route path="objection-handling" element={<ObjectionHandlingBackup />} />
         <Route path="/shop-analyzer" element={<ShopImageAnalyzer />} />
         <Route path="/plumber" element={<Plumber />} />
+        <Route path="/exide" element={<Excide_App />} />
         <Route path="/tts-server" element={<ShadeformDashboard />} />
         <Route path="/tts-sales-agent" element={<AppTTS />} />
         <Route path="/dashboard" element={<Banking />} />
