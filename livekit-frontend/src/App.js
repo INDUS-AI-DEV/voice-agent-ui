@@ -17,6 +17,15 @@ const LANGUAGE_OPTIONS = [
   // { value: 'Af', label: 'African' },
 ];
 
+// Voice options for dropdown
+const VOICE_OPTIONS = [
+  { value: 'urvashi', label: 'Urvashi' },
+  { value: 'maya', label: 'Maya' },
+  // { value: 'voice1', label: 'Voice 1' },
+  { value: 'voice2', label: 'Voice 2' },
+  { value: 'voice3', label: 'Voice 3' },
+];
+
 // OTP/MPIN Modal Component
 function MPINModal({ onAuthenticate }) {
   const [mpin, setMpin] = useState(['', '', '', '']);
@@ -117,6 +126,7 @@ function App() {
   const [clientName, setClientName] = useState('');
   const [telephonyStatus, setTelephonyStatus] = useState('');
   const [language, setLanguage] = useState('Hi'); // Default to Hindi
+  const [voice, setVoice] = useState('voice3'); // Default to Voice 3
 
   useEffect(() => {
     if (!room) return;
@@ -181,8 +191,8 @@ function App() {
       // 2. (Optional) Fixed room, or generate room dynamically if needed
       const roomId = `room-${Math.random().toString(36).substring(2, 8)}`;
 
-      // 3. Build final URL dynamically, now with language param
-      const fullUrl = `${server_url}room=${roomId}&user=${userId}&language=${language}`;
+      // 3. Build final URL dynamically, now with language and voice params
+      const fullUrl = `${server_url}room=${roomId}&user=${userId}&language=${language}&voice_id=${voice}`;
       console.log("Final URL:", fullUrl);
 
       // 4. Fetch the token
@@ -242,7 +252,7 @@ function App() {
         const resp = await fetch(`${server_url}/api/start-telephony-call`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ phoneNumber, clientName })
+          body: JSON.stringify({ phoneNumber, clientName, voice }) // Include voice in telephony call
         });
         const data = await resp.json();
         if (resp.ok && data.success) {
@@ -277,6 +287,27 @@ function App() {
               aria-label="Select Language"
             >
               {LANGUAGE_OPTIONS.map(opt => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+            <span className="language-dropdown-arrow">
+              <svg width="16" height="16" viewBox="0 0 20 20" fill="none" style={{ verticalAlign: 'middle' }}>
+                <path d="M5 8l5 5 5-5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </span>
+          </div>
+        </div>
+        <div style={{ marginTop: '10px', marginBottom: '10px' }}>
+          <div className="language-dropdown-container">
+            <select
+              className="language-dropdown"
+              value={voice}
+              onChange={e => setVoice(e.target.value)}
+              aria-label="Select Voice"
+            >
+              {VOICE_OPTIONS.map(opt => (
                 <option key={opt.value} value={opt.value}>
                   {opt.label}
                 </option>
