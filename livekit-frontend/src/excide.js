@@ -19,11 +19,17 @@ const LANGUAGE_OPTIONS = [
 
 // Voice options for dropdown
 const VOICE_OPTIONS = [
-  { value: 'urvashi', label: 'Urvashi' },
-  { value: 'maya', label: 'Maya' },
+  { value: 'Indus-en-Urvashi', label: 'Urvashi' },
+  { value: 'Indus-en-maya', label: 'Maya' },
   // { value: 'voice1', label: 'Voice 1' },
 //   { value: 'voice2', label: 'Voice 2' },
 //   { value: 'voice3', label: 'Voice 3' },
+];
+
+// Type options for dropdown
+const TYPE_OPTIONS = [
+  { value: 'billing_desk', label: 'Billing Desk' },
+  { value: 'ordering', label: 'Ordering' },
 ];
 
 // OTP/MPIN Modal Component
@@ -127,7 +133,8 @@ function Excide_App() {
   const [userName, setUserName] = useState('');
   const [telephonyStatus, setTelephonyStatus] = useState('');
   const [language, setLanguage] = useState('Hi'); // Default to Hindi
-  const [voice, setVoice] = useState('voice3'); // Default to Voice 3
+  const [voice, setVoice] = useState('Indus-en-Urvashi'); 
+  const [type, setType] = useState('billing_desk'); // Default to Billing Desk
 
   useEffect(() => {
     if (!room) return;
@@ -194,8 +201,8 @@ function Excide_App() {
       // 2. (Optional) Fixed room, or generate room dynamically if needed
       const roomId = `room-${Math.random().toString(36).substring(2, 8)}`;
 
-      // 3. Build final URL dynamically, now with language and voice params
-      const fullUrl = `${server_url}room=${roomId}&user=${encodeURIComponent(userParam)}&language=${language}&voice_id=${voice}`;
+      // 3. Build final URL dynamically, now with language, voice, and type params
+      const fullUrl = `${server_url}room=${roomId}&user=${encodeURIComponent(userParam)}&language=${language}&voice_id=${voice}&type=${type}`;
       console.log("Final URL:", fullUrl);
 
       // 4. Fetch the token
@@ -255,7 +262,7 @@ function Excide_App() {
         const resp = await fetch(`${server_url}/api/start-telephony-call`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ phoneNumber, clientName, voice }) // Include voice in telephony call
+          body: JSON.stringify({ phoneNumber, clientName, voice, type }) // Include voice and type in telephony call
         });
         const data = await resp.json();
         if (resp.ok && data.success) {
@@ -311,6 +318,27 @@ function Excide_App() {
               aria-label="Select Voice"
             >
               {VOICE_OPTIONS.map(opt => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+            <span className="language-dropdown-arrow">
+              <svg width="16" height="16" viewBox="0 0 20 20" fill="none" style={{ verticalAlign: 'middle' }}>
+                <path d="M5 8l5 5 5-5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </span>
+          </div>
+        </div>
+        <div style={{ marginTop: '10px', marginBottom: '10px' }}>
+          <div className="language-dropdown-container">
+            <select
+              className="language-dropdown"
+              value={type}
+              onChange={e => setType(e.target.value)}
+              aria-label="Select Type"
+            >
+              {TYPE_OPTIONS.map(opt => (
                 <option key={opt.value} value={opt.value}>
                   {opt.label}
                 </option>
