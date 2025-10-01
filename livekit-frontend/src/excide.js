@@ -193,10 +193,10 @@ function Excide_App() {
       const server_url = process.env.REACT_APP_TOKEN_SERVER_URL_EXCIDE;
       console.log("Server url:", server_url);
 
-      // 1. Dynamically generate a unique user ID
+      // 1. Dynamically generate a unique user ID or use username for ordering
       const userId = `user-${Math.random().toString(36).substring(2, 8)}`;
       const trimmedUserName = userName.trim();
-      const userParam = trimmedUserName || userId;
+      const userParam = (type === 'ordering' && trimmedUserName) ? trimmedUserName : userId;
 
       // 2. (Optional) Fixed room, or generate room dynamically if needed
       const roomId = `room-${Math.random().toString(36).substring(2, 8)}`;
@@ -330,41 +330,65 @@ function Excide_App() {
             </span>
           </div>
         </div>
-        <div style={{ marginTop: '10px', marginBottom: '10px' }}>
-          <div className="language-dropdown-container">
-            <select
-              className="language-dropdown"
-              value={type}
-              onChange={e => setType(e.target.value)}
-              aria-label="Select Type"
+        <div style={{ marginTop: '20px', marginBottom: '20px' }}>
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'center', 
+            alignItems: 'center',
+            gap: '8px'
+          }}>
+            <button
+              onClick={() => setType('billing_desk')}
+              style={{
+                padding: '12px 20px',
+                borderRadius: '8px',
+                border: '1px solid #666',
+                backgroundColor: type === 'billing_desk' ? '#6366f1' : 'transparent',
+                color: '#fff',
+                fontSize: '14px',
+                fontWeight: '500',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                outline: 'none'
+              }}
             >
-              {TYPE_OPTIONS.map(opt => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-            <span className="language-dropdown-arrow">
-              <svg width="16" height="16" viewBox="0 0 20 20" fill="none" style={{ verticalAlign: 'middle' }}>
-                <path d="M5 8l5 5 5-5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </span>
+              Billing Desk
+            </button>
+            <button
+              onClick={() => setType('ordering')}
+              style={{
+                padding: '12px 20px',
+                borderRadius: '8px',
+                border: '1px solid #666',
+                backgroundColor: type === 'ordering' ? '#6366f1' : 'transparent',
+                color: '#fff',
+                fontSize: '14px',
+                fontWeight: '500',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                outline: 'none'
+              }}
+            >
+              Ordering
+            </button>
           </div>
         </div>
         {/* ...existing code for logo, call section, chat, bot... */}
         <div className="logo-container">
           <img src={maisyLogo} alt="mAIsy Logo" className="logo" />
-          <div className="logo-subtitle">AI Ordering System</div>
+          <div className="logo-subtitle">Exide AI call system</div>
         </div>
-        <div style={{ width: '100%', marginTop: 16 }}>
-          <input
-            type="text"
-            placeholder="user name"
-            value={userName}
-            onChange={e => setUserName(e.target.value)}
-            className="excide-user-input"
-          />
-        </div>
+        {type === 'ordering' && (
+          <div style={{ width: '100%', marginTop: 16 }}>
+            <input
+              type="text"
+              placeholder="user name"
+              value={userName}
+              onChange={e => setUserName(e.target.value)}
+              className="excide-user-input"
+            />
+          </div>
+        )}
         {callType === 'telephony' && (
           <div style={{ marginTop: 24, marginBottom: 16, width: '100%' }}>
             <input
